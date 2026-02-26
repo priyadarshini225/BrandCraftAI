@@ -1,0 +1,141 @@
+/*
+ * animations.css — BizForge / BrandPilot AI
+ * PERMITTED CONTENT: @keyframe definitions ONLY
+ * All layout, spacing, color, and component styles are handled by Tailwind CSS.
+ */
+
+/* ── Floating Orb Drift ─────────────────────────────────────── */
+@keyframes float {
+  0%   { transform: translateY(0px) translateX(0px) scale(1); }
+  25%  { transform: translateY(-30px) translateX(20px) scale(1.05); }
+  50%  { transform: translateY(-15px) translateX(-15px) scale(0.97); }
+  75%  { transform: translateY(-40px) translateX(10px) scale(1.03); }
+  100% { transform: translateY(0px) translateX(0px) scale(1); }
+}
+
+@keyframes floatReverse {
+  0%   { transform: translateY(0px) translateX(0px) scale(1); }
+  25%  { transform: translateY(25px) translateX(-20px) scale(0.98); }
+  50%  { transform: translateY(10px) translateX(30px) scale(1.04); }
+  75%  { transform: translateY(35px) translateX(-10px) scale(0.96); }
+  100% { transform: translateY(0px) translateX(0px) scale(1); }
+}
+
+/* ── Gradient Background Drift ─────────────────────────────── */
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Typing Cursor Blink ────────────────────────────────────── */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ── Loading Bar Pulse ──────────────────────────────────────── */
+@keyframes loadingBar {
+  0%   { width: 0%; opacity: 1; }
+  70%  { width: 85%; opacity: 1; }
+  90%  { width: 92%; opacity: 0.8; }
+  100% { width: 100%; opacity: 0; }
+}
+
+/* ── Shimmer Effect ─────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+/* ── Fade In + Slide Up ─────────────────────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Fade In ────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Scale In ───────────────────────────────────────────────── */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Pulse Glow (button) ────────────────────────────────────── */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.4),
+                0 0 20px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.7),
+                0 0 50px rgba(6, 182, 212, 0.4),
+                0 0 80px rgba(236, 72, 153, 0.2);
+  }
+}
+
+/* ── Orbit Spin ─────────────────────────────────────────────── */
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Typing Animation ───────────────────────────────────────── */
+@keyframes typing {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* ── Color Wave (for active tab indicator) ──────────────────── */
+@keyframes colorWave {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Bounce ─────────────────────────────────────────────────── */
+@keyframes bounceIn {
+  0%   { transform: scale(0.3); opacity: 0; }
+  50%  { transform: scale(1.05); opacity: 0.8; }
+  70%  { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes floatBubble {
+  0%   { transform: translateY(110vh) translateX(0) scale(0.8); opacity: 0; }
+  10%  { opacity: 0.6; }
+  90%  { opacity: 0.35; }
+  100% { transform: translateY(-15vh) translateX(var(--drift, 0px)) scale(1.1); opacity: 0; }
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.5); opacity: 0.7; }
+}
+
+@keyframes spinSlow {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes spinSlowRev {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(-360deg); }
+}

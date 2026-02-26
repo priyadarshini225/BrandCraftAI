@@ -1,0 +1,1162 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <!-- Gate: always show landing page first on a fresh session -->
+  <script>
+    if (!sessionStorage.getItem('_bc_landed')) {
+      sessionStorage.removeItem('_bc_landed');
+      location.replace('landing.html');
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrandCraft AI — Build Your Brand with AI</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/animations.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #060614;
+      color: #f1f5f9;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Mesh gradient */
+    .mesh-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 0% 0%,   rgba(124,58,237,0.20) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 100% 20%, rgba(6,182,212,0.14)  0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 40% 90%,  rgba(236,72,153,0.11) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 40% at 80% 70%,  rgba(16,185,129,0.08) 0%, transparent 50%);
+      background-color: #060614;
+    }
+
+    /* Grid lines */
+    .grid-lines {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Bubbles */
+    .bubbles-container { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+    .bubble {
+      position: absolute;
+      animation: floatBubble linear infinite;
+    }
+    /* Float from bottom upward */
+    @keyframes floatBubble {
+      0%   { transform: translateY(0) translateX(0) scale(0.7); opacity: 0; }
+      8%   { opacity: 1; }
+      50%  { transform: translateY(-50vh) translateX(calc(var(--drift) * 0.5)) scale(1); }
+      92%  { opacity: 0.8; }
+      100% { transform: translateY(-115vh) translateX(var(--drift)) scale(1.1); opacity: 0; }
+    }
+    /* Ambient: spawn anywhere, pulse gently and drift */
+    @keyframes ambientFloat {
+      0%   { transform: translate(0,0) scale(1);   opacity: 0; }
+      15%  { opacity: 1; }
+      50%  { transform: translate(var(--dx), var(--dy)) scale(1.12); }
+      85%  { opacity: 0.75; }
+      100% { transform: translate(calc(var(--dx)*2), calc(var(--dy)*2)) scale(0.85); opacity: 0; }
+    }
+    /* Drift in from sides */
+    @keyframes sideDrift {
+      0%   { transform: translateX(0) translateY(var(--drift)) scale(0.8); opacity: 0; }
+      10%  { opacity: 0.9; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateX(var(--dx)) translateY(calc(var(--drift) + var(--dy))) scale(1.05); opacity: 0; }
+    }
+
+    /* Glass */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+    .glass-bright {
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.13);
+    }
+
+    /* Gradient text */
+    .grad {
+      background: linear-gradient(135deg, #a78bfa 0%, #67e8f9 50%, #f472b6 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* Buttons */
+    .btn-glow {
+      position: relative;
+      background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 60%, #ec4899 100%);
+      background-size: 200% 200%; color: #fff; border: none; cursor: pointer;
+      overflow: hidden; transition: all 0.3s ease;
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+    .btn-glow::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .btn-glow:hover::before { opacity: 1; }
+    .btn-glow:hover { transform: translateY(-2px); box-shadow: 0 20px 60px rgba(124,58,237,0.55); }
+
+    .btn-outline {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18);
+      color: #e2e8f0; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(8px);
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.12); border-color: rgba(139,92,246,0.5);
+      color: #fff; transform: translateY(-1px);
+    }
+
+    /* Feature card */
+    .feat-card { transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); cursor: pointer; }
+    .feat-card:hover {
+      transform: translateY(-8px) scale(1.01);
+      background: rgba(255,255,255,0.08) !important;
+      border-color: rgba(6,182,212,0.45) !important;
+      box-shadow: 0 24px 64px rgba(6,182,212,0.12), 0 0 0 1px rgba(6,182,212,0.2);
+    }
+
+    /* Stat card */
+    .stat-card { transition: all 0.3s ease; }
+    .stat-card:hover { transform: scale(1.05); border-color: rgba(167,139,250,0.5) !important; }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: 0.1s; } .d2 { transition-delay: 0.2s; } .d3 { transition-delay: 0.3s; }
+    .d4 { transition-delay: 0.4s; } .d5 { transition-delay: 0.5s; } .d6 { transition-delay: 0.6s; }
+
+    /* Browser mockup */
+    .browser-frame { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; overflow: hidden; }
+    .browser-bar { background: rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.08); padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    /* Hero glow */
+    .hero-glow {
+      position: absolute; width: 700px; height: 700px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,58,237,0.13) 0%, transparent 65%);
+      left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0;
+    }
+
+    /* Badge pulse */
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #a78bfa; box-shadow: 0 0 8px rgba(167,139,250,0.8); animation: badgePulse 2s ease-in-out infinite; }
+    @keyframes badgePulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.7; } }
+
+    /* Typed cursor */
+    #typed-text::after { content: '|'; animation: blink 1s step-end infinite; color: #a78bfa; }
+    @keyframes blink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+
+    /* Chip */
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    /* Icon box */
+    .icon-box { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); flex-shrink: 0; }
+
+    /* Footer link */
+    .footer-link { color: #94a3b8; font-size: 13px; transition: color 0.2s; text-decoration: none; }
+    .footer-link:hover { color: #e2e8f0; }
+
+    /* Spin slow */
+    @keyframes spinSlow { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+    .spin-slow { animation: spinSlow 20s linear infinite; }
+    .spin-slow-rev { animation: spinSlow 14s linear infinite reverse; }
+
+    select option { background: #0f0f2e; color: #f8fafc; }
+    #lang-selector { background-color: rgba(255,255,255,0.08); -webkit-appearance: none; appearance: none; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.4); border-radius: 4px; }
+  </style>
+</head>
+
+<body>
+  <div class="mesh-bg"></div>
+  <div class="grid-lines"></div>
+  <div class="bubbles-container" id="bubblesContainer"></div>
+
+  <!-- ═══ NAVBAR ═══ -->
+  <nav class="sticky top-0 z-50 glass border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg
+                    bg-gradient-to-br from-violet-600 to-cyan-500 shadow-lg shadow-violet-500/30
+                    group-hover:shadow-violet-500/50 transition-shadow duration-300">🚀</div>
+        <span class="text-xl font-black font-display tracking-tight">
+          <span class="text-white">BrandCraft</span><span class="grad"> AI</span>
+        </span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#features" class="text-slate-400 hover:text-white transition-colors text-sm font-medium" data-i18n="nav_features">Features</a>
+        <a href="branding.html" class="text-slate-400 hover:text-white transition-colors text-sm font-medium" data-i18n="nav_studio">Studio</a>
+        <a href="#about" class="text-slate-400 hover:text-white transition-colors text-sm font-medium" data-i18n="nav_about">About</a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <select id="lang-selector" class="border border-white/20 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-violet-400 cursor-pointer">
+          <option value="en">🌐 EN</option><option value="es">🇪🇸 ES</option>
+          <option value="fr">🇫🇷 FR</option><option value="de">🇩🇪 DE</option><option value="hi">🇮🇳 HI</option>
+        </select>
+        <a href="branding.html" class="hidden md:inline-flex items-center gap-2 btn-glow text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all duration-300">
+          Launch Studio →
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="relative z-10 min-h-[94vh] flex flex-col items-center justify-center px-6 pt-10 pb-20 text-center overflow-hidden">
+    <div class="hero-glow"></div>
+
+    <h1 class="reveal d2 max-w-5xl font-black font-display leading-[1.05] mb-6">
+      <span class="block text-5xl md:text-7xl lg:text-8xl text-white" data-i18n="hero_line1">Build Your Brand</span>
+      <span class="block text-5xl md:text-7xl lg:text-8xl grad mt-2" id="typed-text">with AI</span>
+    </h1>
+
+    <p class="reveal d3 text-slate-400 max-w-2xl text-base md:text-lg leading-relaxed mb-10" data-i18n="hero_subtitle">
+      Create a complete brand identity in seconds. From logos to comprehensive style guides,
+      launch your vision into reality with our futuristic AI engine.
+    </p>
+
+    <div class="reveal d4 flex flex-col sm:flex-row gap-4 items-center justify-center mb-16">
+      <a href="branding.html" class="btn-glow text-white font-bold text-base px-10 py-4 rounded-full inline-flex items-center gap-2 shadow-2xl" data-i18n="hero_cta_start">
+        Start Creating →
+      </a>
+    </div>
+
+    <!-- Browser mockup -->
+    <div class="reveal d5 w-full max-w-3xl mx-auto" id="demo">
+      <div class="browser-frame shadow-2xl shadow-black/60">
+        <div class="browser-bar">
+          <div class="dot bg-red-500/70"></div>
+          <div class="dot bg-yellow-500/70"></div>
+          <div class="dot bg-green-500/70"></div>
+          <div class="flex-1 mx-4">
+            <div class="glass rounded-md px-3 py-1 text-xs text-slate-400 text-center">brandcraft.ai/studio</div>
+          </div>
+        </div>
+        <div class="relative p-8 min-h-[280px] flex items-center justify-center"
+             style="background-image: linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:50px 50px;">
+          <div class="w-full max-w-lg space-y-3">
+            <div class="glass-bright rounded-2xl p-5 border border-white/10">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-xs text-white font-bold">✦</div>
+                <span class="text-sm font-bold text-white">Live Generation</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-auto"></span>
+              </div>
+              <div class="space-y-2.5">
+                <div class="h-2.5 rounded-full w-full" style="background:linear-gradient(90deg,rgba(124,58,237,0.3),rgba(6,182,212,0.3));"></div>
+                <div class="h-2.5 rounded-full w-4/5 bg-white/8 rounded-full"></div>
+                <div class="h-2.5 rounded-full w-3/5 bg-white/6 rounded-full"></div>
+              </div>
+            </div>
+            <div class="flex justify-center">
+              <div class="glass rounded-xl px-4 py-2 text-xs text-violet-300 border border-violet-500/30 flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse"></span>
+                Status: <span class="text-white font-bold ml-1">Generating...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FEATURES — 3D PERSPECTIVE SHOWCASE ═══ -->
+  <style>
+    /* ── Section layout: 70/30 two-column ───────────────────── */
+    #features { user-select: none; }
+
+    .sc-layout {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* Left 70%: stage + nav */
+    .sc-left {
+      flex: 0 0 70%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Right 30%: context panel */
+    .sc-right {
+      flex: 1;
+      min-width: 260px;
+      max-width: 360px;
+    }
+
+    /* ── Context panel (right column) ───────────────────────── */
+    .sc-ctx-panel {
+      padding: 38px 32px;
+      border-radius: 26px;
+      background: rgba(22,25,48,0.70);
+      backdrop-filter: blur(32px) saturate(170%);
+      -webkit-backdrop-filter: blur(32px) saturate(170%);
+      border: 1px solid rgba(255,255,255,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    .sc-ctx-panel::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--pnlglow, radial-gradient(circle at 18% 15%, rgba(123,92,240,0.10) 0%, transparent 62%));
+      pointer-events: none;
+      transition: background 0.55s ease;
+    }
+    .sc-ctx-inner { position: relative; z-index: 1; }
+
+    .sc-ctx-icon {
+      width: 64px; height: 64px; border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-bottom: 16px;
+      transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+    .ctx-badge {
+      display: inline-block;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.14em;
+      text-transform: uppercase; padding: 4px 12px;
+      border-radius: 999px; margin-bottom: 13px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.40);
+    }
+    .ctx-title {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-size: 26px; font-weight: 900; line-height: 1.2;
+      color: #F0F2FF; margin-bottom: 12px;
+    }
+    .ctx-desc {
+      font-size: 14px; line-height: 1.74;
+      color: rgba(148,163,184,0.88);
+      margin-bottom: 26px;
+      min-height: 68px;
+    }
+    .ctx-cta {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 26px; border-radius: 13px;
+      font-size: 13px; font-weight: 700;
+      color: #fff; text-decoration: none;
+      transition: transform 0.22s ease, filter 0.22s ease, box-shadow 0.22s ease;
+    }
+    .ctx-cta:hover { transform: translateY(-3px); filter: brightness(1.14); }
+
+    /* fade-slide transitions */
+    .cx-out { animation: cxOut 0.17s ease forwards; }
+    .cx-in  { animation: cxIn  0.33s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    @keyframes cxOut { to   { opacity:0; transform:translateY(-10px); } }
+    @keyframes cxIn  { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:translateY(0); } }
+
+    /* ── Perspective stage ──────────────────────────────────── */
+    .showcase-outer {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      perspective: 1100px;
+      perspective-origin: 50% 50%;
+      overflow: hidden;
+      cursor: grab;
+    }
+    .showcase-outer:active { cursor: grabbing; }
+
+    /* ── Each card ──────────────────────────────────────────── */
+    .sc-card {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 400px;
+      height: 267px;          /* 3:2 */
+      border-radius: 20px;
+      overflow: hidden;
+      transform-origin: center center;
+      will-change: transform, opacity, filter;
+      transition: box-shadow 0.4s ease;
+      pointer-events: auto;
+    }
+    .sc-card img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center;
+      display: block; pointer-events: none;
+      -webkit-user-drag: none;
+      transition: transform 0.55s cubic-bezier(0.22,1,0.36,1);
+    }
+    .sc-card.is-active:hover img { transform: scale(1.04); }
+
+    /* ── Edge vignette — always above cards ─────────────────── */
+    .sc-fade { position: absolute; top: 0; bottom: 0; pointer-events: none; z-index: 200; }
+    .sc-fade-l { left: 0;  width: 160px; background: linear-gradient(to right, #060614 0%, transparent 100%); }
+    .sc-fade-r { right: 0; width: 160px; background: linear-gradient(to left,  #060614 0%, transparent 100%); }
+
+    /* ── Ground glow ────────────────────────────────────────── */
+    .sc-glow-floor {
+      position: absolute; bottom: -10px; left: 50%;
+      width: 440px; height: 80px;
+      transform: translateX(-50%);
+      border-radius: 50%; pointer-events: none;
+      transition: background 0.55s ease;
+      filter: blur(34px); z-index: 1; opacity: 0.65;
+    }
+
+    /* ── Nav row ─────────────────────────────────────────────── */
+    .showcase-nav {
+      display: flex; align-items: center;
+      justify-content: center; gap: 14px;
+      margin-top: 20px; width: 100%;
+    }
+    .sc-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.11);
+      color: rgba(255,255,255,0.68); font-size: 20px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.22s ease; line-height: 1;
+    }
+    .sc-btn:hover { background: rgba(255,255,255,0.13); color: #fff; transform: scale(1.12); }
+
+    /* ── Dots ───────────────────────────────────────────────── */
+    .sc-dots { display: flex; align-items: center; gap: 8px; }
+    .sc-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(255,255,255,0.20);
+      cursor: pointer; border: none;
+      transition: all 0.32s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .sc-dot.active { width: 28px; border-radius: 4px; background: var(--dot-clr, #7B5CF0); }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .sc-layout { flex-direction: column; gap: 32px; }
+      .sc-left  { flex: none; width: 100%; }
+      .sc-right { max-width: 100%; width: 100%; }
+      .sc-ctx-panel { display: flex; gap: 24px; align-items: flex-start; }
+      .sc-ctx-inner { flex: 1; }
+    }
+    @media (max-width: 700px) {
+      .showcase-outer { height: 280px; perspective: 800px; }
+      .sc-card { width: 300px; height: 200px; border-radius: 16px; }
+      .sc-fade-l, .sc-fade-r { width: 80px; }
+      .sc-ctx-panel { flex-direction: column; }
+      .ctx-title { font-size: 22px; }
+    }
+
+    /* legacy */
+    .c-stage-col { display: none; }
+  </style>
+
+  <section id="features" class="relative z-10 py-20 overflow-hidden">
+    <!-- Header -->
+    <div class="text-center mb-14 reveal">
+      <div class="chip bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 mb-5" style="width:fit-content;margin-left:auto;margin-right:auto;">✦ Core Platform</div>
+      <h2 class="text-3xl md:text-5xl font-black font-display mb-5">
+        Unleash Your <span class="grad">Potential</span>
+      </h2>
+      <p class="text-slate-400 max-w-xl mx-auto text-base">
+        Everything you need to launch a world-class brand, powered by next-generation artificial intelligence.
+      </p>
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="sc-layout">
+
+      <!-- LEFT 70%: 3D Carousel -->
+      <div class="sc-left">
+        <div class="showcase-outer" id="scOuter" role="region" aria-label="Feature showcase">
+          <div class="sc-glow-floor" id="scGlow"></div>
+          <div class="sc-fade sc-fade-l"></div>
+          <div class="sc-fade sc-fade-r"></div>
+        </div>
+        <div class="showcase-nav">
+          <button class="sc-btn" id="scPrev" aria-label="Previous">&#8249;</button>
+          <div class="sc-dots" id="scDots" role="tablist" aria-label="Carousel navigation"></div>
+          <button class="sc-btn" id="scNext" aria-label="Next">&#8250;</button>
+        </div>
+      </div>
+
+      <!-- RIGHT 30%: Context panel -->
+      <div class="sc-right">
+        <div class="sc-ctx-panel" id="ctxStrip" aria-live="polite">
+          <div class="sc-ctx-inner" id="ctxInner">
+            <div class="sc-ctx-icon" id="ctxIconBox"></div>
+            <div class="ctx-badge" data-i18n="ctx_badge">AI Feature</div>
+            <h3 class="ctx-title" id="ctxTitle"></h3>
+            <p  class="ctx-desc"  id="ctxDesc"></p>
+            <a  class="ctx-cta"   id="ctxCta" href="#"></a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+  (function () {
+    /* ════════════════════════════════════════════════════════════
+       DATA
+    ════════════════════════════════════════════════════════════ */
+    const ITEMS = [
+      { icon:'✂️', img:'images/LogoSection.png',
+        nameKey:'feature_logo',         descKey:'feature_logo_desc',         ctaKey:'feature_logo_cta',
+        name:'Logo Studio',
+        desc:'Generate professional, vector-quality logos instantly. Our AI understands design principles to create balanced, memorable marks.',
+        cta:'Try Generator →', href:'branding.html#logo',
+        color:'#7B5CF0', bg:'rgba(123,92,240,0.22)', glow:'rgba(123,92,240,0.55)' },
+      { icon:'🎨', img:'images/BrandKitSection.png',
+        nameKey:'feature_design',        descKey:'feature_design_desc',        ctaKey:'feature_design_cta',
+        name:'Brand Kit',
+        desc:'Get a complete brand system — color palettes, typography pairs, and social mockups auto-generated for you.',
+        cta:'View Samples →', href:'branding.html#design',
+        color:'#14B8A6', bg:'rgba(20,184,166,0.22)', glow:'rgba(20,184,166,0.55)' },
+      { icon:'🤖', img:'images/ChatbotSection.png',
+        nameKey:'feature_chat',          descKey:'feature_chat_desc',          ctaKey:'feature_chat_cta',
+        name:'AI Consultant',
+        desc:'Chat with our specialized AI consultant to refine your brand strategy, voice, and positioning statement in real-time.',
+        cta:'Start Chatting →', href:'branding.html#chat',
+        color:'#EC4899', bg:'rgba(236,72,153,0.22)', glow:'rgba(236,72,153,0.55)' },
+      { icon:'🏷️', img:'images/BrandnameSection.png',
+        nameKey:'feature_brand_names',   descKey:'feature_brand_names_desc',   ctaKey:'feature_brand_names_cta',
+        name:'Brand Names',
+        desc:'10 creative, domain-friendly brand name ideas per generation. Stand out with a name that truly resonates.',
+        cta:'Explore Names →', href:'branding.html#brand-names',
+        color:'#F59E0B', bg:'rgba(245,158,11,0.22)', glow:'rgba(245,158,11,0.55)' },
+      { icon:'✍️', img:'images/MarketingSection.png',
+        nameKey:'feature_marketing',     descKey:'feature_marketing_desc',     ctaKey:'feature_marketing_cta',
+        name:'Marketing Content',
+        desc:'Taglines, social posts, email campaigns & product descriptions — compelling copy at scale, every time.',
+        cta:'Create Content →', href:'branding.html#content',
+        color:'#F97316', bg:'rgba(249,115,22,0.22)', glow:'rgba(249,115,22,0.55)' },
+      { icon:'📊', img:'images/SentimentSection.png',
+        nameKey:'feature_sentiment',     descKey:'feature_sentiment_desc',     ctaKey:'feature_sentiment_cta',
+        name:'Sentiment Analysis',
+        desc:'Evaluate taglines and copy with AI-powered brand analysis. Know exactly how your message lands before launch.',
+        cta:'Analyze Now →', href:'branding.html#analysis',
+        color:'#22C55E', bg:'rgba(34,197,94,0.22)', glow:'rgba(34,197,94,0.55)' },
+    ];
+    const N = ITEMS.length;
+
+    /* ════════════════════════════════════════════════════════════
+       DOM
+    ════════════════════════════════════════════════════════════ */
+    const outer      = document.getElementById('scOuter');
+    const dotsEl     = document.getElementById('scDots');
+    const glowFloor  = document.getElementById('scGlow');
+    const ctxPanel   = document.getElementById('ctxStrip');
+    const ctxInner   = document.getElementById('ctxInner');
+    const ctxIconBox = document.getElementById('ctxIconBox');
+    const ctxTitle   = document.getElementById('ctxTitle');
+    const ctxDesc    = document.getElementById('ctxDesc');
+    const ctxCta     = document.getElementById('ctxCta');
+
+    /* ════════════════════════════════════════════════════════════
+       GEOMETRY
+       — perspective 1200px sits on .showcase-outer (CSS)
+       — cards: position absolute, top:50% left:50%
+       — transform per card = translateX(calc(-50% + TX)) translateY(-50%)
+                               translateZ(TZ) rotateY(RY) scale(SC)
+    ════════════════════════════════════════════════════════════ */
+    const GAP     = 420;   // horizontal distance between card centres (px)
+    const Z_STEP  = 190;   // translateZ falloff per unit offset (negative = away)
+    const RY_STEP = 30;    // rotateY per offset unit (deg)
+    const HIDE_AT = 2.6;   // hide cards beyond this |offset|
+
+    /* ════════════════════════════════════════════════════════════
+       STATE
+    ════════════════════════════════════════════════════════════ */
+    let floatIdx   = 0;      // continuous position
+    let targetIdx  = 0;      // integer snap target
+    let vel        = 0;
+    let isDragging = false;
+    let dragStartF = 0;
+    let dragStartX = 0;
+    let lastDX     = 0;
+    let lastDT     = 0;
+    let flickV     = 0;
+    let lastActive = -1;
+    let ctxBusy    = false;
+    let idlePause  = false;
+    let idleTimer  = null;
+
+    /* ════════════════════════════════════════════════════════════
+       BUILD CARDS & DOTS
+    ════════════════════════════════════════════════════════════ */
+    const cards = ITEMS.map((d, i) => {
+      const el  = document.createElement('div');
+      const img = document.createElement('img');
+      el.className = 'sc-card';
+      img.src     = d.img;
+      img.alt     = d.name;
+      img.loading = 'eager';
+      img.draggable = false;
+      el.appendChild(img);
+      el.addEventListener('click', () => {
+        if (Math.abs(vel) > 0.3 || isDragging) return;
+        goTo(i);
+      });
+      // insert before the first sc-glow-floor child
+      outer.insertBefore(el, glowFloor);
+      return el;
+    });
+
+    const dots = ITEMS.map((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'sc-dot' + (i === 0 ? ' active' : '');
+      b.setAttribute('role', 'tab');
+      b.addEventListener('click', () => goTo(i));
+      dotsEl.appendChild(b);
+      return b;
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       UTILITY: shortest wrapped offset  (-N/2 … +N/2)
+    ════════════════════════════════════════════════════════════ */
+    function wrapOff(i, fi) {
+      let o = i - fi;
+      o = ((o % N) + N + N / 2) % N - N / 2;
+      return o;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       RENDER — called every rAF frame
+       Perspective 1200px is set on .showcase-outer via CSS.
+       Each card: position absolute, top:50% left:50%
+       transform =  translateX(calc(-50% + TX))
+                    translateY(-50%)
+                    translateZ(TZ)
+                    rotateY(RY)
+                    scale(SC)
+    ════════════════════════════════════════════════════════════ */
+    function render() {
+      const activeI = ((Math.round(floatIdx) % N) + N) % N;
+
+      cards.forEach((el, i) => {
+        const o    = wrapOff(i, floatIdx);  // continuous offset from center
+        const absO = Math.abs(o);
+
+        // hide distant cards
+        if (absO > HIDE_AT + 0.5) { el.style.visibility = 'hidden'; return; }
+        el.style.visibility = 'visible';
+
+        const tx  = o * GAP;
+        const tz  = -absO * Z_STEP;            // recede into screen
+        const ry  = -o * RY_STEP;              // face toward center
+        const sc  = Math.max(0.50, 1 - absO * 0.048); // subtle extra scale punch
+
+        // visual fidelity
+        const opacity = Math.max(0.07, 1 - absO * 0.40);
+        const blurPx  = Math.min(absO * 4, 14);
+        const sat     = Math.max(18, 100 - absO * 30);
+
+        /* cinematic easing baked into transform — perspective does the rest */
+        el.style.transform =
+          `translateX(calc(-50% + ${tx.toFixed(1)}px)) ` +
+          `translateY(-50%) ` +
+          `translateZ(${tz.toFixed(1)}px) ` +
+          `rotateY(${ry.toFixed(2)}deg) ` +
+          `scale(${sc.toFixed(3)})`;
+
+        el.style.opacity = opacity.toFixed(3);
+        el.style.filter  = absO < 0.06
+          ? 'none'
+          : `blur(${blurPx.toFixed(1)}px) saturate(${sat.toFixed(0)}%)`;
+        el.style.zIndex  = Math.round(100 - absO * 12);
+
+        const isCenter = (i === activeI && absO < 0.5);
+        el.classList.toggle('is-active', isCenter);
+        el.style.boxShadow = isCenter
+          ? `0 24px 80px ${ITEMS[i].glow}, 0 0 0 0 transparent`
+          : 'none';
+      });
+
+      // ground glow pulses with active item colour
+      glowFloor.style.background = ITEMS[activeI].glow.replace('0.55', '0.30');
+
+      // sync context panel & dots
+      if (activeI !== lastActive) {
+        lastActive = activeI;
+        setDots(activeI);
+        updateCtx(activeI);
+      }
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       SPRING LOOP
+    ════════════════════════════════════════════════════════════ */
+    const SPRING  = 0.12;
+    const DAMP    = 0.77;
+
+    function tick() {
+      if (!isDragging) {
+        const delta = targetIdx - floatIdx;
+        vel = vel * DAMP + delta * SPRING;
+        floatIdx += vel;
+        if (Math.abs(delta) < 0.0005 && Math.abs(vel) < 0.0005) {
+          floatIdx = targetIdx; vel = 0;
+        }
+      }
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       goTo — navigate to item index (handles wrapped shortest path)
+    ════════════════════════════════════════════════════════════ */
+    function goTo(i) {
+      const ni   = ((i % N) + N) % N;
+      const diff = wrapOff(ni, targetIdx);
+      targetIdx  = targetIdx + diff;
+      resetIdle();
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       CONTEXT PANEL
+    ════════════════════════════════════════════════════════════ */
+    function setDots(i) {
+      dots.forEach((d, j) => d.classList.toggle('active', j === i));
+      dotsEl.style.setProperty('--dot-clr', ITEMS[i].color);
+    }
+
+    // Safely call translate() from i18n.js — returns fallback if i18n not yet loaded
+    // or if the key has no entry in the active language.
+    function _t(key, fallback) {
+      if (typeof translate === 'function') {
+        const v = translate(key);
+        if (v !== key) return v;   // key was found and translated
+      }
+      return fallback;
+    }
+
+    function applyCtx(i) {
+      const d = ITEMS[i];
+      // icon box
+      ctxIconBox.textContent      = d.icon;
+      ctxIconBox.style.background = d.bg;
+      ctxIconBox.style.boxShadow  = `0 0 22px ${d.glow}`;
+      // text + CTA  (translated when i18n is ready, English fallback otherwise)
+      ctxTitle.textContent        = _t(d.nameKey, d.name);
+      ctxTitle.style.color        = d.color;
+      ctxDesc.textContent         = _t(d.descKey, d.desc);
+      ctxCta.textContent          = _t(d.ctaKey,  d.cta);
+      ctxCta.href                 = d.href;
+      ctxCta.style.background     = d.color;
+      ctxCta.style.boxShadow      = `0 10px 28px ${d.glow}`;
+      // panel accent glow
+      ctxPanel.style.setProperty('--pnlglow',
+        `radial-gradient(circle at 18% 15%, ${d.bg} 0%, transparent 65%)`);
+    }
+
+    function updateCtx(i) {
+      if (ctxBusy) return;
+      ctxBusy = true;
+      ctxInner.classList.remove('cx-in');
+      ctxInner.classList.add('cx-out');
+      setTimeout(() => {
+        applyCtx(i);
+        ctxInner.classList.remove('cx-out');
+        ctxInner.classList.add('cx-in');
+        ctxBusy = false;
+      }, 175);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       IDLE AUTO-ADVANCE
+    ════════════════════════════════════════════════════════════ */
+    function resetIdle() {
+      idlePause = true;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => { idlePause = false; }, 2800);
+    }
+
+    setInterval(() => {
+      if (!idlePause && !isDragging && Math.abs(vel) < 0.05) {
+        const cur = ((Math.round(floatIdx) % N) + N) % N;
+        goTo((cur + 1) % N);
+      }
+    }, 3800);
+
+    /* ════════════════════════════════════════════════════════════
+       MOUSE DRAG
+    ════════════════════════════════════════════════════════════ */
+    outer.addEventListener('mousedown', e => {
+      isDragging = true;
+      dragStartX = e.clientX; dragStartF = floatIdx;
+      lastDX = e.clientX; lastDT = performance.now();
+      flickV = 0; vel = 0;
+      resetIdle(); e.preventDefault();
+    });
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      const dx = e.clientX - dragStartX;
+      floatIdx  = dragStartF - dx / GAP;
+      targetIdx = floatIdx;
+      const dt  = performance.now() - lastDT;
+      flickV    = -(e.clientX - lastDX) / Math.max(dt, 1) * 16;
+      lastDX    = e.clientX; lastDT = performance.now();
+    });
+    window.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      vel = flickV * 0.011;
+      const snap = Math.round(floatIdx);
+      targetIdx  = snap;
+      goTo(((snap % N) + N) % N);
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       TOUCH SWIPE
+    ════════════════════════════════════════════════════════════ */
+    outer.addEventListener('touchstart', e => {
+      isDragging = true;
+      dragStartX = e.touches[0].clientX; dragStartF = floatIdx;
+      lastDX = e.touches[0].clientX; lastDT = performance.now();
+      flickV = 0; vel = 0;
+      resetIdle();
+    }, { passive: true });
+    outer.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      const dx = e.touches[0].clientX - dragStartX;
+      floatIdx  = dragStartF - dx / GAP;
+      targetIdx = floatIdx;
+      const dt  = performance.now() - lastDT;
+      flickV    = -(e.touches[0].clientX - lastDX) / Math.max(dt, 1) * 16;
+      lastDX    = e.touches[0].clientX; lastDT = performance.now();
+    }, { passive: true });
+    outer.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      vel = flickV * 0.011;
+      const snap = Math.round(floatIdx);
+      targetIdx  = snap;
+      goTo(((snap % N) + N) % N);
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       WHEEL SCROLL
+    ════════════════════════════════════════════════════════════ */
+    outer.addEventListener('wheel', e => {
+      e.preventDefault();
+      vel += e.deltaY * 0.0035;
+      targetIdx = floatIdx;
+      resetIdle();
+      clearTimeout(outer._wt);
+      outer._wt = setTimeout(() => {
+        const snap = Math.round(floatIdx + vel * 3);
+        targetIdx  = snap;
+        goTo(((snap % N) + N) % N);
+      }, 260);
+    }, { passive: false });
+
+    /* ════════════════════════════════════════════════════════════
+       KEYBOARD
+    ════════════════════════════════════════════════════════════ */
+    document.addEventListener('keydown', e => {
+      const r = outer.getBoundingClientRect();
+      if (r.top > window.innerHeight || r.bottom < 0) return;
+      const cur = ((Math.round(floatIdx) % N) + N) % N;
+      if (e.key === 'ArrowLeft')  { goTo((cur - 1 + N) % N); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { goTo((cur + 1) % N);     e.preventDefault(); }
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       ARROW BUTTONS
+    ════════════════════════════════════════════════════════════ */
+    document.getElementById('scPrev').addEventListener('click', () => {
+      const cur = ((Math.round(floatIdx) % N) + N) % N;
+      goTo((cur - 1 + N) % N);
+    });
+    document.getElementById('scNext').addEventListener('click', () => {
+      const cur = ((Math.round(floatIdx) % N) + N) % N;
+      goTo((cur + 1) % N);
+    });
+
+    /* ════════════════════════════════════════════════════════════
+       PAUSE IDLE ON HOVER
+    ════════════════════════════════════════════════════════════ */
+    outer.addEventListener('mouseenter', () => resetIdle());
+    ctxPanel.addEventListener('mouseenter', () => resetIdle());
+
+    /* ════════════════════════════════════════════════════════════
+       INIT
+    ════════════════════════════════════════════════════════════ */
+    applyCtx(0);
+    setDots(0);
+    tick();
+
+    // Re-translate the context panel whenever the user switches language.
+    // i18n.js dispatches 'langchange' on window after setLanguage() runs.
+    window.addEventListener('langchange', () => {
+      if (lastActive >= 0) applyCtx(lastActive);
+    });
+  })();
+  </script>
+
+  <!-- ═══ STATS ═══ -->
+  <section class="relative z-10 py-20">
+    <div class="max-w-5xl mx-auto px-6">
+      <div class="glass-bright rounded-3xl border border-white/10 p-10 md:p-14 reveal"
+           style="background: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(255,255,255,0.04) 50%, rgba(6,182,212,0.05) 100%);">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div class="stat-card border border-transparent rounded-2xl p-4 hover:border-violet-500/30">
+            <p class="text-4xl md:text-5xl font-black font-display grad mb-2">10k+</p>
+            <p class="text-slate-500 text-xs uppercase tracking-widest font-semibold">Brands Created</p>
+          </div>
+          <div class="stat-card border border-transparent rounded-2xl p-4 hover:border-violet-500/30">
+            <p class="text-4xl md:text-5xl font-black font-display grad mb-2">2M+</p>
+            <p class="text-slate-500 text-xs uppercase tracking-widest font-semibold">Assets Generated</p>
+          </div>
+          <div class="stat-card border border-transparent rounded-2xl p-4 hover:border-violet-500/30">
+            <p class="text-4xl md:text-5xl font-black font-display grad mb-2">99%</p>
+            <p class="text-slate-500 text-xs uppercase tracking-widest font-semibold">Satisfaction Rate</p>
+          </div>
+          <div class="stat-card border border-transparent rounded-2xl p-4 hover:border-violet-500/30">
+            <p class="text-4xl md:text-5xl font-black font-display grad mb-2">24/7</p>
+            <p class="text-slate-500 text-xs uppercase tracking-widest font-semibold">AI Availability</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ WHY SECTION ═══ -->
+  <section id="about" class="relative z-10 max-w-7xl mx-auto px-6 py-20">
+    <div class="glass rounded-3xl border border-white/10 p-10 md:p-14 reveal">
+      <div class="text-center mb-12">
+        <div class="chip bg-violet-500/10 border border-violet-500/25 text-violet-400 mb-5">✦ Why Choose Us</div>
+        <h2 class="text-3xl md:text-5xl font-black font-display">Built Different, <span class="grad">Built Better</span></h2>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
+        <div class="stat-card glass-bright rounded-2xl p-5 text-center border border-white/10 reveal d1 hover:border-violet-500/40">
+          <div class="text-3xl mb-3">🧠</div><p class="text-sm font-bold text-white" data-i18n="why_ai">AI-Powered Tools</p>
+          <p class="text-xs text-slate-500 mt-1">LLaMA 3.3-70B + IBM Granite + SDXL</p>
+        </div>
+        <div class="stat-card glass-bright rounded-2xl p-5 text-center border border-white/10 reveal d2 hover:border-cyan-500/40">
+          <div class="text-3xl mb-3">⚡</div><p class="text-sm font-bold text-white" data-i18n="why_instant">Instant Results</p>
+          <p class="text-xs text-slate-500 mt-1">Under 5s for text generation</p>
+        </div>
+        <div class="stat-card glass-bright rounded-2xl p-5 text-center border border-white/10 reveal d3 hover:border-emerald-500/40">
+          <div class="text-3xl mb-3">🌍</div><p class="text-sm font-bold text-white" data-i18n="why_multi">Multilingual</p>
+          <p class="text-xs text-slate-500 mt-1">EN · ES · FR · DE · HI</p>
+        </div>
+        <div class="stat-card glass-bright rounded-2xl p-5 text-center border border-white/10 reveal d4 hover:border-pink-500/40">
+          <div class="text-3xl mb-3">🎤</div><p class="text-sm font-bold text-white" data-i18n="why_voice">Voice Input</p>
+          <p class="text-xs text-slate-500 mt-1">Speak your brand vision</p>
+        </div>
+        <div class="stat-card glass-bright rounded-2xl p-5 text-center border border-white/10 reveal d5 hover:border-violet-500/40">
+          <div class="text-3xl mb-3">💼</div><p class="text-sm font-bold text-white" data-i18n="why_pro">Professional Output</p>
+          <p class="text-xs text-slate-500 mt-1">Pitch-ready brand identity</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="relative z-10 py-28 px-6 text-center overflow-hidden">
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+      <div class="w-[600px] h-[600px] rounded-full border border-violet-500/10 spin-slow" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);animation:spinSlow 20s linear infinite;"></div>
+      <div class="w-[400px] h-[400px] rounded-full border border-cyan-500/10" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);animation:spinSlow 14s linear infinite reverse;"></div>
+    </div>
+    <div class="relative reveal">
+      <div class="chip bg-pink-500/10 border border-pink-500/25 text-pink-400 mb-6 mx-auto w-fit">🚀 Get Started</div>
+      <h2 class="text-4xl md:text-6xl font-black font-display mb-6 leading-tight">
+        Ready to <span class="grad">launch?</span>
+      </h2>
+      <p class="text-slate-400 text-lg mb-10 max-w-lg mx-auto">
+        Join thousands of founders who built their brand identity in a single afternoon.
+      </p>
+      <a href="branding.html" class="btn-glow text-white font-bold text-lg px-14 py-5 rounded-full inline-block shadow-2xl shadow-violet-500/30">
+        Get Started for Free
+      </a>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="relative z-10 border-t border-white/8 py-14 px-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <div class="md:col-span-1">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-cyan-500 flex items-center justify-center text-base">🚀</div>
+            <span class="text-lg font-black font-display text-white">BrandCraft <span class="grad">AI</span></span>
+          </div>
+          <p class="text-slate-500 text-sm leading-relaxed">Empowering creators and startups with professional design tools powered by artificial intelligence.</p>
+          <div class="flex gap-3 mt-5">
+            <a href="#" class="w-8 h-8 glass rounded-lg flex items-center justify-center text-sm hover:bg-white/10 transition-colors border border-white/10">🐦</a>
+            <a href="#" class="w-8 h-8 glass rounded-lg flex items-center justify-center text-sm hover:bg-white/10 transition-colors border border-white/10">💼</a>
+            <a href="#" class="w-8 h-8 glass rounded-lg flex items-center justify-center text-sm hover:bg-white/10 transition-colors border border-white/10">📰</a>
+          </div>
+        </div>
+        <div>
+          <p class="text-white text-sm font-bold mb-4 uppercase tracking-widest">Product</p>
+          <div class="space-y-2.5">
+            <a href="branding.html" class="footer-link block">Logo Maker</a>
+            <a href="branding.html#design" class="footer-link block">Brand Guidelines</a>
+            <a href="branding.html#brand-names" class="footer-link block">Business Names</a>
+            <a href="#" class="footer-link block">Pricing</a>
+          </div>
+        </div>
+        <div>
+          <p class="text-white text-sm font-bold mb-4 uppercase tracking-widest">Company</p>
+          <div class="space-y-2.5">
+            <a href="#about" class="footer-link block">About Us</a>
+            <a href="#" class="footer-link block">Careers</a>
+            <a href="#" class="footer-link block">Blog</a>
+            <a href="#" class="footer-link block">Contact</a>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-white/8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-slate-600 text-sm" data-i18n="footer_copy">© 2024 BrandCraft AI. All rights reserved.</p>
+        <div class="flex gap-6">
+          <a href="#" class="footer-link">Privacy Policy</a>
+          <a href="#" class="footer-link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/i18n.js"></script>
+  <script>
+    /* Floating bubbles */
+    (function() {
+      const container = document.getElementById('bubblesContainer');
+      const palette = [
+        { bg:'rgba(124,58,237,0.08)',  border:'rgba(124,58,237,0.18)',  glow:'rgba(124,58,237,0.10)' },
+        { bg:'rgba(6,182,212,0.07)',   border:'rgba(6,182,212,0.16)',   glow:'rgba(6,182,212,0.09)'  },
+        { bg:'rgba(236,72,153,0.06)',  border:'rgba(236,72,153,0.15)',  glow:'rgba(236,72,153,0.08)' },
+        { bg:'rgba(16,185,129,0.06)',  border:'rgba(16,185,129,0.14)',  glow:'rgba(16,185,129,0.08)' },
+        { bg:'rgba(167,139,250,0.08)', border:'rgba(167,139,250,0.18)', glow:'rgba(167,139,250,0.10)'},
+        { bg:'rgba(34,211,238,0.07)',  border:'rgba(34,211,238,0.16)',  glow:'rgba(34,211,238,0.09)' },
+        { bg:'rgba(251,191,36,0.06)',  border:'rgba(251,191,36,0.14)',  glow:'rgba(251,191,36,0.08)' },
+        { bg:'rgba(239,68,68,0.05)',   border:'rgba(239,68,68,0.13)',   glow:'rgba(239,68,68,0.07)'  },
+      ];
+      const shapes = ['50%','50%','50%','50%','40% 60% 60% 40% / 50%','60% 40% 40% 60% / 50%','50% 50% 30% 70% / 50%'];
+
+      function spawnBubble(forceType) {
+        const b = document.createElement('div');
+        b.className = 'bubble';
+        const p     = palette[Math.floor(Math.random() * palette.length)];
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        const size  = Math.random() < 0.15 ? 130 + Math.random() * 90 : 8 + Math.random() * 60;  // 15% chance huge (130–220px), rest small (8–68px)
+        const dur   = 8 + Math.random() * 20;
+        const glow  = `0 0 ${size*0.7}px ${p.glow}, inset 0 0 ${size*0.25}px rgba(255,255,255,0.07)`;
+        const type  = forceType || (['bottom','bottom','ambient','ambient','side'])[Math.floor(Math.random()*5)];
+
+        let posStyle = '';
+        let animStyle = '';
+
+        if (type === 'bottom') {
+          // Classic float up from bottom
+          const drift = (Math.random() - 0.5) * 200 + 'px';
+          const delay = Math.random() * 8;
+          posStyle  = `left:${Math.random()*100}%;top:auto;bottom:${-size-10}px;`;
+          animStyle = `--drift:${drift};animation-name:floatBubble;animation-duration:${dur}s;animation-delay:-${delay}s;`;
+          setTimeout(() => b.remove(), (dur + delay) * 1000 + 2000);
+
+        } else if (type === 'ambient') {
+          // Spawn at random position anywhere on screen, drift gently
+          const tx = (Math.random() - 0.5) * 120 + 'px';
+          const ty = (Math.random() - 0.5) * 120 + 'px';
+          const delay = Math.random() * 6;
+          posStyle  = `left:${Math.random()*95}%;top:${Math.random()*90}%;bottom:auto;`;
+          animStyle = `--dx:${tx};--dy:${ty};animation-name:ambientFloat;animation-duration:${dur*1.4}s;animation-delay:-${delay}s;`;
+          setTimeout(() => b.remove(), (dur * 1.4 + delay) * 1000 + 2000);
+
+        } else {
+          // Drift in from left or right side
+          const fromLeft = Math.random() > 0.5;
+          const distance = (80 + Math.random() * 60) * (fromLeft ? 1 : -1) + 'vw';
+          const vertDrift = (Math.random() - 0.5) * 80 + 'px';
+          const vertPos   = 5 + Math.random() * 88;
+          const delay = Math.random() * 6;
+          posStyle  = `${fromLeft ? 'left:-120px' : 'right:-120px'};left:auto;top:${vertPos}%;bottom:auto;`;
+          if (fromLeft) posStyle = `left:-120px;top:${vertPos}%;bottom:auto;`;
+          else          posStyle = `right:-120px;top:${vertPos}%;bottom:auto;left:auto;`;
+          animStyle = `--dx:${distance};--dy:${vertDrift};--drift:${vertDrift};animation-name:sideDrift;animation-duration:${dur*1.2}s;animation-delay:-${delay}s;`;
+          setTimeout(() => b.remove(), (dur * 1.2 + delay) * 1000 + 2000);
+        }
+
+        const opacity = size < 18 ? 0.40 : size < 60 ? 0.25 : size < 130 ? 0.18 : 0.08;
+        b.style.cssText = `
+          position:absolute;${posStyle}
+          width:${size}px;height:${size}px;
+          border-radius:${shape};
+          background:${p.bg};border:1px solid ${p.border};
+          box-shadow:${glow};
+          opacity:${opacity};
+          animation-timing-function:linear;
+          animation-iteration-count:1;
+          animation-fill-mode:forwards;
+          ${animStyle}`;
+        container.appendChild(b);
+      }
+
+      // Seed screen fully on load: mix of all three types
+      for (let i = 0; i < 12; i++) spawnBubble('bottom');
+      for (let i = 0; i < 12; i++) spawnBubble('ambient');
+      for (let i = 0; i <  6; i++) spawnBubble('side');
+
+      // Continuously spawn mixed types
+      setInterval(() => spawnBubble(), 700);
+    })();
+
+    /* Scroll reveal */
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    /* Typed text */
+    const phrases = ['with AI', 'in Seconds', 'Effortlessly', 'that Converts'];
+    let pi = 0, ci = 0, deleting = false;
+    const el = document.getElementById('typed-text');
+    function type() {
+      const phrase = phrases[pi];
+      if (!deleting) {
+        el.textContent = phrase.slice(0, ci + 1); ci++;
+        if (ci === phrase.length) { deleting = true; setTimeout(type, 2200); return; }
+      } else {
+        el.textContent = phrase.slice(0, ci - 1); ci--;
+        if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+      }
+      setTimeout(type, deleting ? 50 : 85);
+    }
+    setTimeout(type, 1600);
+  </script>
+</body>
+</html>
