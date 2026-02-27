@@ -8,11 +8,12 @@ import os
 import uuid
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
+import requests
 
 import ai_services as ai
 
@@ -115,6 +116,9 @@ class LogoRequest(BaseModel):
     industry: str
     style_keywords: str
     description: str = ""
+    minimalism: int | None = None
+    complexity: int | None = None
+    vibrancy: int | None = None
 
 class CompetitorRequest(BaseModel):
     brand_name: str
@@ -137,6 +141,25 @@ class BrandGuidelinesRequest(BaseModel):
     color_palette: str
     language: str = "English"
 
+class MarketCheckRequest(BaseModel):
+    brand_name: str
+    competitor_urls: list[str]
+    tlds: list[str] | None = None
+
+class MoodboardRequest(BaseModel):
+    archetype: str
+    colors: str
+    brand_name: str | None = None
+
+class PitchDeckRequest(BaseModel):
+    brand_name: str
+    brand_dna: str
+    primary_hex: str = "#7C3AED"
+    secondary_hex: str = "#06B6D4"
+
+class ConsistencyTextRequest(BaseModel):
+    brand_dna: str
+    about_text: str
 
 # ─── Utility wrapper ────────────────────────────────────────────────────────
 def success(data) -> dict:
@@ -294,7 +317,8 @@ async def generate_logo(req: LogoRequest):
         safe_name = req.brand_name.replace(" ", "_").lower()
         filename = f"{safe_name}_{uuid.uuid4().hex[:8]}.png"
         logo_url = await ai.generate_logo_image(
-            req.brand_name, req.industry, req.style_keywords, filename, req.description
+            req.brand_name, req.industry, req.style_keywords, filename, req.description,
+            req.minimalism, req.complexity, req.vibrancy
         )
         return success({"image_url": logo_url, "filename": filename})
     except Exception as e:
@@ -326,6 +350,110 @@ async def analyze_competitors(req: CompetitorRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ═══════════════════════════════════════════════════════════════════
+# MARKET CHECK ENDPOINT
+# ═══════════════════════════════════════════════════════════════════
+@app.post("/api/market-check")
+async def market_check(req: MarketCheckRequest):
+    """
+    Run competitor scraper → differentiation → domain & naming risk.
+    Returns a Market Readiness Report JSON.
+    """
+    try:
+        report = await ai.market_check(req.brand_name, req.competitor_urls, req.tlds)
+        return success(report)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# MOODBOARD ENDPOINT
+# ═══════════════════════════════════════════════════════════════════
+@app.post("/api/generate-moodboard")
+async def generate_moodboard(req: MoodboardRequest):
+    try:
+        data = await ai.generate_moodboard(req.archetype, req.colors, req.brand_name)
+        return success(data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/market-check")
+async def market_check_get(brand_name: str, competitor_urls: str, tlds: str | None = None):
+    try:
+        urls = [u.strip() for u in competitor_urls.split(",") if u.strip()]
+        tld_list = [t.strip() for t in tlds.split(",")] if tlds else None
+        report = await ai.market_check(brand_name, urls, tld_list)
+        return success(report)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/generate-pitch-deck")
+async def generate_pitch_deck_get(brand_name: str, brand_dna: str, primary_hex: str = "#7C3AED", secondary_hex: str = "#06B6D4"):
+    try:
+        text = await ai.generate_pitch_deck_text(brand_name, brand_dna)
+        slides = text.get("slides", text)
+        url = await ai.build_pitch_deck_pptx(slides, primary_hex, secondary_hex)
+        return success({"slides": slides, "file_url": url})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/validate-consistency")
+async def validate_consistency_get(brand_dna: str, about_text: str):
+    try:
+        result = await ai.validate_consistency(brand_dna, about_text=about_text)
+        return success(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/validate-consistency-image")
+async def validate_consistency_image_get(brand_dna: str, image_url: str):
+    try:
+        r = requests.get(image_url, timeout=20)
+        r.raise_for_status()
+        result = await ai.validate_consistency(brand_dna, image_bytes=r.content)
+        return success(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# PITCH DECK ENDPOINT
+# ═══════════════════════════════════════════════════════════════════
+@app.post("/api/generate-pitch-deck")
+async def generate_pitch_deck(req: PitchDeckRequest):
+    try:
+        text = await ai.generate_pitch_deck_text(req.brand_name, req.brand_dna)
+        slides = text.get("slides", text)
+        file_url = None
+        try:
+            file_url = await ai.build_pitch_deck_pptx(slides, req.primary_hex, req.secondary_hex)
+        except RuntimeError as ex:
+            # Return slides even if pptx library missing
+            return success({"slides": slides, "file_url": None, "warning": str(ex)})
+        return success({"slides": slides, "file_url": file_url})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# CONSISTENCY VALIDATOR ENDPOINTS
+# ═══════════════════════════════════════════════════════════════════
+@app.post("/api/validate-consistency")
+async def validate_consistency(req: ConsistencyTextRequest):
+    try:
+        result = await ai.validate_consistency(req.brand_dna, about_text=req.about_text)
+        return success(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/validate-consistency-image")
+async def validate_consistency_image(brand_dna: str = Form(...), image: UploadFile = File(...)):
+    try:
+        img_bytes = await image.read()
+        result = await ai.validate_consistency(brand_dna, image_bytes=img_bytes)
+        return success(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ═══════════════════════════════════════════════════════════════════
 # AI CHATBOT ROUTE  (IBM Granite via HF)

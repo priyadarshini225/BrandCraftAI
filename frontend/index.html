@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <!-- Gate: always show landing page first on a fresh session -->
@@ -951,6 +951,37 @@
     </div>
   </section>
 
+  <!-- ═══ MOODBOARD ═══ -->
+  <section class="relative z-10 py-20">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="glass-bright rounded-3xl border border-white/10 p-8 md:p-10">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="chip bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 mb-3">✦ Moodboard Generator</div>
+            <h3 class="text-2xl font-black font-display text-white">Visual DNA</h3>
+          </div>
+          <button id="btn-generate-moodboard" class="btn-glow px-5 py-2 rounded-xl text-sm font-bold">Generate</button>
+        </div>
+        <div class="grid md:grid-cols-3 gap-3 mb-4">
+          <div>
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2 block">Archetype</label>
+            <input id="mb-archetype" class="dark-input" placeholder="e.g. Minimalist, Bold, Luxury" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2 block">Colors (hex or words)</label>
+            <input id="mb-colors" class="dark-input" placeholder="#111827, #7C3AED, silver, charcoal" />
+          </div>
+        </div>
+        <div id="moodboard-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-600">Texture / Pattern</div>
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-600">Lifestyle / Environment</div>
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-600">Typography Style</div>
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-600">Product Mockup</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ WHY SECTION ═══ -->
   <section id="about" class="relative z-10 max-w-7xl mx-auto px-6 py-20">
     <div class="glass rounded-3xl border border-white/10 p-10 md:p-14 reveal">
@@ -1157,6 +1188,38 @@
       setTimeout(type, deleting ? 50 : 85);
     }
     setTimeout(type, 1600);
+
+    /* Moodboard generator wiring */
+    const mbBtn = document.getElementById('btn-generate-moodboard');
+    const grid  = document.getElementById('moodboard-grid');
+    if (mbBtn && grid) {
+      mbBtn.addEventListener('click', async () => {
+        const archetype = document.getElementById('mb-archetype')?.value?.trim() || '';
+        const colors    = document.getElementById('mb-colors')?.value?.trim() || '';
+        grid.innerHTML = `
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-500">⏳ Generating...</div>
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-500">⏳ Generating...</div>
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-500">⏳ Generating...</div>
+          <div class="aspect-square rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center text-slate-500">⏳ Generating...</div>`;
+        try {
+          const res = await fetch(API_BASE + '/api/generate-moodboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ archetype, colors })
+          });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.detail || 'Request failed');
+          const { texture, lifestyle, typography, mockup } = data.data;
+          grid.innerHTML = `
+            <img src="${API_BASE + texture}" class="aspect-square object-cover rounded-2xl border border-white/10" alt="Texture">
+            <img src="${API_BASE + lifestyle}" class="aspect-square object-cover rounded-2xl border border-white/10" alt="Lifestyle">
+            <img src="${API_BASE + typography}" class="aspect-square object-cover rounded-2xl border border-white/10" alt="Typography">
+            <img src="${API_BASE + mockup}" class="aspect-square object-cover rounded-2xl border border-white/10" alt="Mockup">`;
+        } catch (e) {
+          grid.innerHTML = `<div class="col-span-2 text-center text-red-400">Error: ${e.message}</div>`;
+        }
+      });
+    }
   </script>
 </body>
 </html>
