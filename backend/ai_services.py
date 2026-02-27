@@ -66,22 +66,22 @@ async def generate_brand_names(
 ) -> str:
     """
     Generate 10 creative brand name suggestions based on industry,
-    keywords, and tone. Returns a formatted string list.
+    keywords, and tone. Returns a JSON string [ { "name": "...", "rationale": "..." }, ... ]
     """
     system = (
         "You are a world-class brand strategist and naming expert. "
         "Generate creative, memorable, domain-friendly brand names. "
-        f"Respond in {language}."
+        f"Respond in {language}. Return ONLY a JSON array of objects with 'name' and 'rationale' keys."
     )
     user = (
         f"Generate 10 creative brand name ideas for a {industry} business.\n"
         f"Keywords to incorporate: {keywords}\n"
         f"Brand tone/personality: {tone}\n\n"
-        "Format each name with:\n"
-        "• Name\n"
-        "  Meaning/rationale (1 sentence)\n"
-        "  Why it works (1 sentence)\n\n"
-        "Make the names catchy, modern, and easy to remember."
+        "Return the response as a valid JSON array of objects. "
+        "Each object should have:\n"
+        "1. 'name': The brand name suggestion\n"
+        "2. 'rationale': A 1-2 sentence explanation of why it works and its meaning.\n\n"
+        "Do not include any other text before or after the JSON."
     )
     return await asyncio.to_thread(_groq_chat, system, user)
 
@@ -121,27 +121,28 @@ async def generate_logo_prompt(
     brand_name: str,
     industry: str,
     keywords: str,
+    description: str = "",
 ) -> str:
     """
     Generate a rich Stable Diffusion XL prompt for logo creation
-    based on brand name, industry, and keywords.
+    based on brand name, industry, keywords, and optional description.
     """
     system = (
-        "You are a professional graphic design AI prompt engineer. "
-        "Create highly detailed, visually precise image generation prompts "
-        "for logo design optimized for Stable Diffusion XL."
+        "You are an expert at translating brand missions into SINGLE, RECOGNIZABLE objects. "
+        "Your goal is to pick ONE literal, iconic metaphor that communicates 'Education', 'Free', or 'Knowledge'."
+        "Avoid any abstract or complex descriptions. Output MUST be short and direct."
     )
     user = (
-        f"Create a Stable Diffusion XL prompt for a professional logo for:\n"
         f"Brand Name: {brand_name}\n"
-        f"Industry: {industry}\n"
-        f"Keywords/Style: {keywords}\n\n"
-        "Requirements:\n"
-        "- Minimal, modern, vector-style logo\n"
-        "- Clean white or transparent background\n"
-        "- Professional and scalable design\n"
-        "- Include specific style descriptors, color palette, and composition\n"
-        "Return ONLY the image generation prompt, nothing else."
+        f"Mission: {description}\n"
+        f"Industry/Keywords: {industry}, {keywords}\n\n"
+        "Strategic Metaphor Options for 'Free Education' and 'Students':\n"
+        "- 'An open book where the pages turn into a flight bird'\n"
+        "- 'A graduation mortarboard cap with an unlocked padlock'\n"
+        "- 'A lightbulb with a pencil tip as the filament'\n"
+        "- 'A single, vibrant open book with a rising sun inside'\n\n"
+        "Pick ONE of these or something equally LITERAL. Do NOT use abstract circles or blobs.\n"
+        "Describe ONLY the object and its primary color (e.g., 'A vibrant blue open book with a golden sun rising from its center')."
     )
     return await asyncio.to_thread(_groq_chat, system, user, 0.7)
 
@@ -405,6 +406,7 @@ async def generate_logo_image(
     industry: str,
     style_keywords: str,
     filename: str = "logo.png",
+    description: str = "",
 ) -> str:
     """
     Generate a brand logo using Stable Diffusion XL via HuggingFace Inference API.
@@ -412,18 +414,21 @@ async def generate_logo_image(
     Returns the relative URL path to the saved logo file.
     """
     # Step 1: Generate optimised image prompt via Groq
-    sd_prompt = await generate_logo_prompt(brand_name, industry, style_keywords)
+    sd_prompt = await generate_logo_prompt(brand_name, industry, style_keywords, description)
 
-    # Enhance with SDXL quality boosters
+    # Forcefully construct a singular icon prompt
     enhanced_prompt = (
+        "A minimalist flat vector logo icon of "
         f"{sd_prompt}, "
-        "professional logo design, vector art, minimal, clean, "
-        "white background, high contrast, sharp lines, "
-        "award winning graphic design, 4k, crisp"
+        "centered on a solid white background, isolated, "
+        "professional branding, high contrast, clean lines, "
+        "masterpiece, high quality, no text, no words, no letters, "
+        "no grid, no multiple icons, one single icon only, 8k"
     )
     negative_prompt = (
-        "blurry, low quality, watermark, text overlay, busy background, "
-        "photorealistic, photography, noisy, pixelated, distorted"
+        "grid, multiple versions, variants, collection, sheet, collage, blurry, text, "
+        "lettering, font, signature, messy background, low resolution, multiple icons, "
+        "borders, frames, dark background, shadow, photo, 3d render"
     )
 
     image: Image.Image = await hf_client.text_to_image(

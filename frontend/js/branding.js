@@ -139,7 +139,7 @@ async function genBrandNames() {
   const description = document.getElementById("bn-description")?.value?.trim() || "";
   const industry = document.getElementById("bn-industry").value.trim();
   const keywords = document.getElementById("bn-keywords").value.trim();
-  const tone     = document.getElementById("bn-tone").value;
+  const tone = document.getElementById("bn-tone").value;
 
   if (!industry || !keywords) {
     showErr("bn-result", "Please fill in Industry and Keywords fields.");
@@ -150,7 +150,24 @@ async function genBrandNames() {
     const res = await post("/api/generate-brand-names", {
       industry, keywords, tone, description, language: getLanguageName(),
     });
-    showText("bn-result", res.data, "Brand Name Suggestions");
+
+    // Parse JSON response for cards
+    let namesData = [];
+    try {
+      namesData = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+    } catch (e) {
+      console.warn("Could not parse JSON, falling back", e);
+      // Fallback: if it's not JSON, maybe it's the old format? 
+      // But we changed backend to return JSON.
+      showText("bn-result", res.data, "Brand Suggestions");
+      return;
+    }
+
+    if (Array.isArray(namesData)) {
+      displayBrandCards(namesData);
+    } else {
+      showText("bn-result", res.data, "Brand Suggestions");
+    }
   } catch (e) {
     showErr("bn-result", e.message);
   }
@@ -161,9 +178,10 @@ async function genBrandNames() {
 // ═══════════════════════════════════════════════════════════════════
 
 async function genLogoPrompt() {
-  const brand_name     = document.getElementById("logo-name").value.trim();
-  const industry       = document.getElementById("logo-industry").value.trim();
+  const brand_name = document.getElementById("logo-name").value.trim();
+  const industry = document.getElementById("logo-industry").value.trim();
   const style_keywords = document.getElementById("logo-style").value.trim();
+  const description = document.getElementById("logo-desc").value.trim();
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
@@ -172,7 +190,7 @@ async function genLogoPrompt() {
   loading("logo-prompt-result", "Generating SDXL prompt...");
   document.getElementById("logo-prompt-result").style.display = "block";
   try {
-    const res = await post("/api/generate-logo-prompt", { brand_name, industry, style_keywords });
+    const res = await post("/api/generate-logo-prompt", { brand_name, industry, style_keywords, description });
     showText("logo-prompt-result", res.data, "Stable Diffusion XL Prompt");
   } catch (e) {
     showErr("logo-prompt-result", e.message);
@@ -180,9 +198,10 @@ async function genLogoPrompt() {
 }
 
 async function genLogo() {
-  const brand_name     = document.getElementById("logo-name").value.trim();
-  const industry       = document.getElementById("logo-industry").value.trim();
+  const brand_name = document.getElementById("logo-name").value.trim();
+  const industry = document.getElementById("logo-industry").value.trim();
   const style_keywords = document.getElementById("logo-style").value.trim();
+  const description = document.getElementById("logo-desc").value.trim();
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
@@ -191,7 +210,7 @@ async function genLogo() {
   loading("logo-result", "Creating your logo with Stable Diffusion XL — this may take up to 30s...");
   document.getElementById("logo-prompt-result").style.display = "none";
   try {
-    const res = await post("/api/generate-logo", { brand_name, industry, style_keywords });
+    const res = await post("/api/generate-logo", { brand_name, industry, style_keywords, description });
     const imageUrl = `${API_BASE}${res.data.image_url}`;
     document.getElementById("logo-result").innerHTML = `
       <div style="animation:scaleIn 0.5s ease-out">
@@ -217,8 +236,8 @@ async function genLogo() {
 
 async function genMarketingContent() {
   const brand_description = document.getElementById("mc-desc").value.trim();
-  const content_type      = document.getElementById("mc-type").value;
-  const tone              = document.getElementById("mc-tone").value;
+  const content_type = document.getElementById("mc-type").value;
+  const tone = document.getElementById("mc-tone").value;
 
   if (!brand_description) {
     showErr("mc-result", "Please provide a brand description.");
@@ -236,10 +255,10 @@ async function genMarketingContent() {
 }
 
 async function genSocialPosts() {
-  const brand_name          = document.getElementById("sp-brand").value.trim();
+  const brand_name = document.getElementById("sp-brand").value.trim();
   const product_description = document.getElementById("sp-desc").value.trim();
-  const platform            = document.getElementById("sp-platform").value;
-  const tone                = document.getElementById("sp-tone").value;
+  const platform = document.getElementById("sp-platform").value;
+  const tone = document.getElementById("sp-tone").value;
 
   if (!brand_name || !product_description) {
     showErr("sp-result", "Please fill in Brand Name and Product Description.");
@@ -257,10 +276,10 @@ async function genSocialPosts() {
 }
 
 async function genProductDesc() {
-  const product_name    = document.getElementById("pd-name").value.trim();
-  const features        = document.getElementById("pd-features").value.trim();
+  const product_name = document.getElementById("pd-name").value.trim();
+  const features = document.getElementById("pd-features").value.trim();
   const target_audience = document.getElementById("pd-audience").value.trim();
-  const tone            = document.getElementById("pd-tone").value;
+  const tone = document.getElementById("pd-tone").value;
 
   if (!product_name || !features) {
     showErr("pd-result", "Please fill in Product Name and Features.");
@@ -278,10 +297,10 @@ async function genProductDesc() {
 }
 
 async function genEmailCampaign() {
-  const brand_name     = document.getElementById("ec-brand").value.trim();
-  const campaign_goal  = document.getElementById("ec-goal").value.trim();
+  const brand_name = document.getElementById("ec-brand").value.trim();
+  const campaign_goal = document.getElementById("ec-goal").value.trim();
   const product_service = document.getElementById("ec-product").value.trim();
-  const tone           = document.getElementById("ec-tone").value;
+  const tone = document.getElementById("ec-tone").value;
 
   if (!brand_name || !campaign_goal) {
     showErr("ec-result", "Please fill in Brand Name and Campaign Goal.");
@@ -300,9 +319,9 @@ async function genEmailCampaign() {
 
 async function genBrandStory() {
   const brand_name = document.getElementById("bs-name").value.trim();
-  const industry   = document.getElementById("bs-industry").value.trim();
-  const mission    = document.getElementById("bs-mission").value.trim();
-  const tone       = document.getElementById("bs-tone").value;
+  const industry = document.getElementById("bs-industry").value.trim();
+  const mission = document.getElementById("bs-mission").value.trim();
+  const tone = document.getElementById("bs-tone").value;
 
   if (!brand_name || !industry) {
     showErr("bs-result", "Please fill in Brand Name and Industry.");
@@ -326,7 +345,7 @@ async function genBrandStory() {
 
 async function genColorPalette() {
   const industry = document.getElementById("ds-industry").value.trim();
-  const tone     = document.getElementById("ds-tone").value;
+  const tone = document.getElementById("ds-tone").value;
 
   if (!industry) {
     showErr("ds-palette", "Please enter an industry.");
@@ -349,49 +368,57 @@ function renderColorPalette(containerId, data) {
   if (!el) return;
 
   if (data.raw) {
-    // Fallback: show raw text
     showText(containerId, data.raw, "Color Palette");
     return;
   }
 
   const colors = ["primary", "secondary", "accent", "background", "text"];
-  const swatches = colors.map((key) => {
+  const swatches = colors.map((key, i) => {
     const c = data[key];
     if (!c) return "";
+    // Offset each card slightly to look like a spread of playing cards
+    const rotation = (i - 2) * 5;
+    const translateX = (i - 2) * 10;
+
     return `
-      <div class="flex flex-col items-center gap-2">
-        <div class="color-swatch" style="background:${c.hex}" title="Click to copy ${c.hex}"
-             onclick="copyText(this, '${c.hex}'); this.style.transform='scale(0.9)'; setTimeout(()=>this.style.transform='',200)">
-        </div>
-        <div class="text-center">
-          <p class="text-xs font-bold text-gray-200">${c.hex}</p>
-          <p class="text-xs text-gray-500">${c.name}</p>
-          <p class="text-xs text-gray-600 leading-tight mt-0.5">${c.usage}</p>
+      <div class="relative group" style="transform: rotate(${rotation}deg) translateX(${translateX}px); margin-bottom: 20px;">
+        <div class="w-24 h-36 rounded-xl border border-white/20 shadow-2xl transition-all duration-300 group-hover:-translate-y-4 group-hover:rotate-0 flex flex-col overflow-hidden glass-bright"
+             style="background: ${c.hex}; cursor: pointer;"
+             onclick="copyText(this, '${c.hex}')">
+          <div class="flex-1"></div>
+          <div class="bg-black/40 backdrop-blur-md p-2 text-center">
+            <p class="text-[10px] font-black text-white leading-none">${c.hex}</p>
+            <p class="text-[8px] text-white/70 uppercase tracking-tighter mt-1 truncate">${c.name}</p>
+          </div>
         </div>
       </div>`;
   }).join("");
 
   el.innerHTML = `
-    <div style="animation:fadeInUp 0.4s ease-out">
-      <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-4">Brand Color Palette</p>
-      <div class="grid grid-cols-5 gap-3">${swatches}</div>
+    <div style="animation:fadeInUp 0.4s ease-out" class="py-8 overflow-hidden">
+      <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-8 text-center">Brand Color Palette</p>
+      <div class="flex justify-center items-center h-48 -space-x-12 px-10">
+        ${swatches}
+      </div>
       ${data.rationale ? `
-        <div class="mt-5 p-3 rounded-xl bg-white/5 border border-white/10">
-          <p class="text-xs text-gray-400 leading-relaxed">💡 ${data.rationale}</p>
+        <div class="mt-12 p-4 rounded-2xl bg-white/5 border border-white/10 mx-auto max-w-lg">
+          <p class="text-xs text-gray-300 leading-relaxed text-center italic">"${data.rationale}"</p>
         </div>` : ""}
-      <button onclick='copyText(this, ${JSON.stringify(JSON.stringify(data))})'
-        class="mt-3 px-4 py-1.5 text-xs font-semibold rounded-full border border-violet-500/50
-               text-violet-300 hover:bg-violet-500/20 transition-all">
-        📋 Copy JSON
-      </button>
+      <div class="flex justify-center mt-6">
+        <button onclick='copyText(this, ${JSON.stringify(JSON.stringify(data))})'
+          class="px-5 py-2 text-xs font-bold rounded-full bg-violet-500/10 border border-violet-500/40
+                 text-violet-300 hover:bg-violet-500/20 transition-all">
+          📋 Export Palette JSON
+        </button>
+      </div>
     </div>`;
 }
 
 async function genBrandGuidelines() {
-  const brand_name   = document.getElementById("dg-brand").value.trim();
-  const industry     = document.getElementById("ds-industry").value.trim();
-  const mission      = document.getElementById("dg-mission").value.trim();
-  const tone         = document.getElementById("ds-tone").value;
+  const brand_name = document.getElementById("dg-brand").value.trim();
+  const industry = document.getElementById("ds-industry").value.trim();
+  const mission = document.getElementById("dg-mission").value.trim();
+  const tone = document.getElementById("ds-tone").value;
   const color_palette = "See color palette above";
 
   if (!brand_name || !industry) {
@@ -415,7 +442,7 @@ async function genBrandGuidelines() {
 // ═══════════════════════════════════════════════════════════════════
 
 async function genSentiment() {
-  const text       = document.getElementById("sa-text").value.trim();
+  const text = document.getElementById("sa-text").value.trim();
   const brand_tone = document.getElementById("sa-tone").value;
 
   if (!text) {
@@ -446,7 +473,7 @@ function renderSentiment(containerId, data) {
   const sentimentColor = {
     Positive: "text-emerald-400",
     Negative: "text-red-400",
-    Neutral:  "text-yellow-400",
+    Neutral: "text-yellow-400",
   }[data.overall_sentiment] || "text-gray-400";
 
   const scoreBar = (score) => {
@@ -508,8 +535,8 @@ function renderSentiment(containerId, data) {
 }
 
 async function genCompetitor() {
-  const brand_name  = document.getElementById("ca-brand").value.trim();
-  const industry    = document.getElementById("ca-industry").value.trim();
+  const brand_name = document.getElementById("ca-brand").value.trim();
+  const industry = document.getElementById("ca-industry").value.trim();
   const target_market = document.getElementById("ca-market").value.trim();
 
   if (!brand_name || !industry) {
@@ -640,7 +667,7 @@ function removeTypingIndicator(id) {
 async function clearChat() {
   try {
     await fetch(`${API_BASE}/api/chat/${chatSessionId}`, { method: "DELETE" });
-  } catch (_) {}
+  } catch (_) { }
   chatSessionId = "session_" + Date.now();
   const idDisplay = document.getElementById("session-id-display");
   if (idDisplay) idDisplay.textContent = chatSessionId;
@@ -664,7 +691,7 @@ async function clearChat() {
 // ═══════════════════════════════════════════════════════════════════
 
 let mediaRecorder = null;
-let audioChunks   = [];
+let audioChunks = [];
 let voiceTargetId = null;
 
 /**

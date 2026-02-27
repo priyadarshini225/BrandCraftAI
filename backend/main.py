@@ -114,6 +114,7 @@ class LogoRequest(BaseModel):
     brand_name: str
     industry: str
     style_keywords: str
+    description: str = ""
 
 class CompetitorRequest(BaseModel):
     brand_name: str
@@ -275,7 +276,7 @@ async def generate_logo_prompt(req: LogoRequest):
     """Generate an SDXL-optimized logo creation prompt."""
     try:
         result = await ai.generate_logo_prompt(
-            req.brand_name, req.industry, req.style_keywords
+            req.brand_name, req.industry, req.style_keywords, req.description
         )
         return success(result)
     except Exception as e:
@@ -293,7 +294,7 @@ async def generate_logo(req: LogoRequest):
         safe_name = req.brand_name.replace(" ", "_").lower()
         filename = f"{safe_name}_{uuid.uuid4().hex[:8]}.png"
         logo_url = await ai.generate_logo_image(
-            req.brand_name, req.industry, req.style_keywords, filename
+            req.brand_name, req.industry, req.style_keywords, filename, req.description
         )
         return success({"image_url": logo_url, "filename": filename})
     except Exception as e:
