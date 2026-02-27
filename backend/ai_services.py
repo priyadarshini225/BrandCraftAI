@@ -21,8 +21,8 @@ import requests
 load_dotenv()
 
 # ─── Clients ────────────────────────────────────────────────────────────────
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-HF_API_KEY   = os.getenv("HF_API_KEY", "")
+GROQ_API_KEY   = os.getenv("GROQ_API_KEY", "")
+HF_API_KEY     = os.getenv("HF_API_KEY", "")
 
 groq_client = Groq(api_key=GROQ_API_KEY)
 hf_client   = AsyncInferenceClient(token=HF_API_KEY)
@@ -115,34 +115,34 @@ async def generate_marketing_content(
 
 
 # ═══════════════════════════════════════════════════════════════════
-# 3. LOGO PROMPT GENERATION  (Groq → feeds into SDXL)
+# 3. LOGO PROMPT GENERATION  (Groq → structured preview prompt)
 # ═══════════════════════════════════════════════════════════════════
 async def generate_logo_prompt(
     brand_name: str,
     industry: str,
     keywords: str,
     description: str = "",
+    mood: str = "",
+    colors: str = "",
 ) -> str:
     """
-    Generate a rich Stable Diffusion XL prompt for logo creation
-    based on brand name, industry, keywords, and optional description.
+    Generate a structured Gemini logo prompt (for user preview).
     """
     system = (
-        "You are an expert at translating brand missions into SINGLE, RECOGNIZABLE objects. "
-        "Your goal is to pick ONE literal, iconic metaphor that communicates 'Education', 'Free', or 'Knowledge'."
-        "Avoid any abstract or complex descriptions. Output MUST be short and direct."
+        "You are a professional logo designer. Write a precise image generation prompt "
+        "for creating a professional logo. Specify: one clear icon/symbol concept, "
+        "typography style, color palette, visual style, and white background. "
+        "Be specific and concise. Output the prompt only, no explanation."
     )
     user = (
         f"Brand Name: {brand_name}\n"
-        f"Mission: {description}\n"
-        f"Industry/Keywords: {industry}, {keywords}\n\n"
-        "Strategic Metaphor Options for 'Free Education' and 'Students':\n"
-        "- 'An open book where the pages turn into a flight bird'\n"
-        "- 'A graduation mortarboard cap with an unlocked padlock'\n"
-        "- 'A lightbulb with a pencil tip as the filament'\n"
-        "- 'A single, vibrant open book with a rising sun inside'\n\n"
-        "Pick ONE of these or something equally LITERAL. Do NOT use abstract circles or blobs.\n"
-        "Describe ONLY the object and its primary color (e.g., 'A vibrant blue open book with a golden sun rising from its center')."
+        f"Industry: {industry}\n"
+        f"Style Keywords: {keywords or 'minimalist, modern, clean'}\n"
+        f"Color Palette: {colors or 'professional on-brand colors'}\n"
+        f"Mood: {mood or 'professional, trustworthy, memorable'}\n"
+        f"Design Concept: {description or 'none'}\n\n"
+        "Write a detailed logo generation prompt specifying: the exact icon/symbol, "
+        "typography style for the brand name, colors, flat/vector style, white background."
     )
     return await asyncio.to_thread(_groq_chat, system, user, 0.7)
 
@@ -399,7 +399,7 @@ def clear_chat_history(session_id: str = "default") -> None:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# 11. LOGO GENERATION — Stable Diffusion XL  (HuggingFace)
+# 11. LOGO GENERATION — Pollinations.ai (FLUX, completely free, no key)
 # ═══════════════════════════════════════════════════════════════════
 async def generate_logo_image(
     brand_name: str,
@@ -407,37 +407,72 @@ async def generate_logo_image(
     style_keywords: str,
     filename: str = "logo.png",
     description: str = "",
+    mood: str = "",
+    colors: str = "",
 ) -> str:
     """
-    Generate a brand logo using Stable Diffusion XL via HuggingFace Inference API.
-    First generates an optimized SDXL prompt via Groq, then creates the image.
+    Generate a brand logo image.
+    Primary: HuggingFace FLUX.1-schnell (uses HF_API_KEY).
+    Fallback: Pollinations.ai (free, no key).
     Returns the relative URL path to the saved logo file.
     """
-    # Step 1: Generate optimised image prompt via Groq
-    sd_prompt = await generate_logo_prompt(brand_name, industry, style_keywords, description)
+    import urllib.parse
+    import time
 
-    # Forcefully construct a singular icon prompt
-    enhanced_prompt = (
-        "A minimalist flat vector logo icon of "
-        f"{sd_prompt}, "
-        "centered on a solid white background, isolated, "
-        "professional branding, high contrast, clean lines, "
-        "masterpiece, high quality, no text, no words, no letters, "
-        "no grid, no multiple icons, one single icon only, 8k"
-    )
-    negative_prompt = (
-        "grid, multiple versions, variants, collection, sheet, collage, blurry, text, "
-        "lettering, font, signature, messy background, low resolution, multiple icons, "
-        "borders, frames, dark background, shadow, photo, 3d render"
+    # Build a concise prompt
+    style  = (style_keywords or "minimalist flat vector")[:60]
+    color  = (colors or "professional colors")[:40]
+    symbol = f", {description[:50]}" if description else ""
+
+    prompt = (
+        f"brand logo '{brand_name}' {industry}, {style}, {color}{symbol}, "
+        "white background, flat vector, clean, sans-serif"
     )
 
-    image: Image.Image = await hf_client.text_to_image(
-        model="stabilityai/stable-diffusion-xl-base-1.0",
-        prompt=enhanced_prompt,
-        negative_prompt=negative_prompt,
-        width=512,
-        height=512,
-    )
+    def _try_huggingface() -> Image.Image:
+        """Primary: HuggingFace Router → FLUX.1-schnell"""
+        resp = requests.post(
+            "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+            headers={"Authorization": f"Bearer {HF_API_KEY}"},
+            json={"inputs": prompt},
+            timeout=120,
+        )
+        resp.raise_for_status()
+        return Image.open(BytesIO(resp.content)).convert("RGBA")
+
+    def _try_pollinations() -> Image.Image:
+        """Fallback: Pollinations.ai GET endpoint"""
+        negative = "blurry,watermark,photo,3d,dark background"
+        seed = abs(hash(brand_name)) % 9999
+        url = (
+            f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}"
+            f"?width=512&height=512&model=flux&nologo=true"
+            f"&negative={urllib.parse.quote(negative)}&seed={seed}"
+        )
+        resp = requests.get(url, timeout=120)
+        resp.raise_for_status()
+        return Image.open(BytesIO(resp.content)).convert("RGBA")
+
+    def _fetch():
+        # Try HuggingFace first (more reliable), then Pollinations as fallback
+        providers = [
+            ("HuggingFace FLUX.1-schnell", _try_huggingface),
+            ("Pollinations.ai", _try_pollinations),
+        ]
+        last_err = None
+        for name, fn in providers:
+            for retry in range(2):
+                try:
+                    return fn()
+                except Exception as e:
+                    last_err = e
+                    time.sleep(2 * (retry + 1))
+        raise RuntimeError(
+            f"Logo generation failed (all providers down). Last error: {last_err}. "
+            "Please try again in a minute."
+        )
+
+    image: Image.Image = await asyncio.to_thread(_fetch)
 
     # Save to static/logos/
     safe_name = re.sub(r"[^a-zA-Z0-9_\-]", "_", filename)

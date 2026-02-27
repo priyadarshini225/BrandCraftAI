@@ -115,6 +115,8 @@ class LogoRequest(BaseModel):
     industry: str
     style_keywords: str
     description: str = ""
+    mood: str = ""
+    colors: str = ""
 
 class CompetitorRequest(BaseModel):
     brand_name: str
@@ -273,10 +275,11 @@ async def get_color_palette(req: ColorPaletteRequest):
 
 @app.post("/api/generate-logo-prompt")
 async def generate_logo_prompt(req: LogoRequest):
-    """Generate an SDXL-optimized logo creation prompt."""
+    """Generate a structured Gemini logo creation prompt (preview before generation)."""
     try:
         result = await ai.generate_logo_prompt(
-            req.brand_name, req.industry, req.style_keywords, req.description
+            req.brand_name, req.industry, req.style_keywords,
+            req.description, req.mood, req.colors
         )
         return success(result)
     except Exception as e:
@@ -284,17 +287,18 @@ async def generate_logo_prompt(req: LogoRequest):
 
 
 # ═══════════════════════════════════════════════════════════════════
-# IMAGE GENERATION ROUTE  (Stable Diffusion XL via HF)
+# IMAGE GENERATION ROUTE  (Google Gemini)
 # ═══════════════════════════════════════════════════════════════════
 
 @app.post("/api/generate-logo")
 async def generate_logo(req: LogoRequest):
-    """Generate a brand logo image using Stable Diffusion XL."""
+    """Generate a brand logo image using Pollinations.ai (FLUX)."""
     try:
         safe_name = req.brand_name.replace(" ", "_").lower()
         filename = f"{safe_name}_{uuid.uuid4().hex[:8]}.png"
         logo_url = await ai.generate_logo_image(
-            req.brand_name, req.industry, req.style_keywords, filename, req.description
+            req.brand_name, req.industry, req.style_keywords,
+            filename, req.description, req.mood, req.colors
         )
         return success({"image_url": logo_url, "filename": filename})
     except Exception as e:

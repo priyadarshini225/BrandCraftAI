@@ -178,43 +178,47 @@ async function genBrandNames() {
 // ═══════════════════════════════════════════════════════════════════
 
 async function genLogoPrompt() {
-  const brand_name = document.getElementById("logo-name").value.trim();
-  const industry = document.getElementById("logo-industry").value.trim();
+  const brand_name     = document.getElementById("logo-name").value.trim();
+  const industry       = document.getElementById("logo-industry").value.trim();
   const style_keywords = document.getElementById("logo-style").value.trim();
-  const description = document.getElementById("logo-desc").value.trim();
+  const description    = document.getElementById("logo-desc").value.trim();
+  const colors         = document.getElementById("logo-colors").value.trim();
+  const mood           = document.getElementById("logo-mood").value.trim();
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
     return;
   }
-  loading("logo-prompt-result", "Generating SDXL prompt...");
+  loading("logo-prompt-result", "Building Gemini logo prompt...");
   document.getElementById("logo-prompt-result").style.display = "block";
   try {
-    const res = await post("/api/generate-logo-prompt", { brand_name, industry, style_keywords, description });
-    showText("logo-prompt-result", res.data, "Stable Diffusion XL Prompt");
+    const res = await post("/api/generate-logo-prompt", { brand_name, industry, style_keywords, description, colors, mood });
+    showText("logo-prompt-result", res.data, "Gemini Logo Prompt");
   } catch (e) {
     showErr("logo-prompt-result", e.message);
   }
 }
 
 async function genLogo() {
-  const brand_name = document.getElementById("logo-name").value.trim();
-  const industry = document.getElementById("logo-industry").value.trim();
+  const brand_name     = document.getElementById("logo-name").value.trim();
+  const industry       = document.getElementById("logo-industry").value.trim();
   const style_keywords = document.getElementById("logo-style").value.trim();
-  const description = document.getElementById("logo-desc").value.trim();
+  const description    = document.getElementById("logo-desc").value.trim();
+  const colors         = document.getElementById("logo-colors").value.trim();
+  const mood           = document.getElementById("logo-mood").value.trim();
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
     return;
   }
-  loading("logo-result", "Creating your logo with Stable Diffusion XL — this may take up to 30s...");
+  loading("logo-result", "Creating your logo with Pollinations.ai FLUX — this may take up to 30s...");
   document.getElementById("logo-prompt-result").style.display = "none";
   try {
-    const res = await post("/api/generate-logo", { brand_name, industry, style_keywords, description });
+    const res = await post("/api/generate-logo", { brand_name, industry, style_keywords, description, colors, mood });
     const imageUrl = `${API_BASE}${res.data.image_url}`;
     document.getElementById("logo-result").innerHTML = `
       <div style="animation:scaleIn 0.5s ease-out">
-        <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">Generated Logo</p>
+        <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">Generated Logo (FLUX · Pollinations.ai)</p>
         <img src="${imageUrl}" alt="Logo for ${brand_name}" class="max-w-full max-h-72 rounded-xl border border-white/10 mx-auto block" />
         <div class="flex gap-3 mt-4 justify-center">
           <a href="${imageUrl}" download="${brand_name}_logo.png"

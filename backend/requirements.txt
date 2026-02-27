@@ -8,3 +8,4 @@ aiofiles==23.2.1
 python-multipart==0.0.9
 requests==2.32.3
 aiohttp>=3.9.0
+google-genai>=1.0.0
