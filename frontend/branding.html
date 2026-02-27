@@ -741,6 +741,14 @@
           class="px-4 py-2 rounded-lg text-white bg-white/8 text-sm font-semibold border border-violet-500/30 flex items-center gap-1.5">
           <span class="text-xs">✦</span> AI Studio
         </span>
+        <a href="#analysis:market"
+          class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-cyan-500/20 border border-cyan-500/30 transition-all text-xs font-semibold">
+          Market
+        </a>
+        <a href="#analysis:consistency"
+          class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-emerald-500/20 border border-emerald-500/30 transition-all text-xs font-semibold">
+          Consistency
+        </a>
         <button onclick="openPanel('projects')"
           class="px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/6 transition-all text-sm font-medium flex items-center gap-1.5">
           <span class="text-xs">📁</span> Projects
@@ -844,7 +852,25 @@
           <textarea id="logo-desc" class="dark-input" rows="2"
             placeholder="e.g. A lightning bolt integrated into a bicycle wheel..."></textarea>
         </div>
-        <p class="text-xs text-amber-400/80 flex items-center gap-1.5"><span>⏱</span> Logo generation takes ~15–30s via Pollinations.ai (FLUX).</p>
+        <div class="grid grid-cols-1 gap-3">
+          <div>
+            <label for="slider-minimalism">Minimalism</label>
+            <input id="slider-minimalism" type="range" min="0" max="100" value="60"
+                   class="w-full accent-violet-500" />
+          </div>
+          <div>
+            <label for="slider-complexity">Complexity</label>
+            <input id="slider-complexity" type="range" min="0" max="100" value="40"
+                   class="w-full accent-cyan-500" />
+          </div>
+          <div>
+            <label for="slider-vibrancy">Vibrancy</label>
+            <input id="slider-vibrancy" type="range" min="0" max="100" value="50"
+                   class="w-full accent-pink-500" />
+          </div>
+          <p class="text-[11px] text-slate-500">Adjust sliders to fine-tune the generated logo style.</p>
+        </div>
+        <p class="text-xs text-amber-400/80 flex items-center gap-1.5"><span>⏱</span> Logo generation takes ~15–30s via HuggingFace FLUX.</p>
         <div class="pt-2 flex gap-2">
           <button onclick="genLogoPrompt()"
             class="flex-1 btn-outline text-white font-semibold text-xs px-4 py-3 rounded-2xl">📝 Preview Prompt</button>
@@ -970,6 +996,7 @@
           <button onclick="genBrandStory()"
             class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Generate Brand Story</button>
         </div>
+        
       </div>
 
       <!-- ── TAB: Design (sidebar form) ── -->
@@ -1005,6 +1032,8 @@
         <div class="flex flex-wrap gap-1.5 mb-3">
           <button class="sub-tab-btn active" onclick="switchSubTab('analysis','sentiment',this)">💬 Sentiment</button>
           <button class="sub-tab-btn" onclick="switchSubTab('analysis','competitor',this)">🏆 Competitor</button>
+          <button class="sub-tab-btn" onclick="switchSubTab('analysis','market',this)">🛰️ Market Check</button>
+          <button class="sub-tab-btn" onclick="switchSubTab('analysis','consistency',this)">🧭 Consistency</button>
         </div>
         <div id="analysis-sentiment" class="sub-tab-content active space-y-3">
           <div><label for="sa-text">Text to Analyse</label><textarea id="sa-text" class="dark-input" rows="3"
@@ -1031,6 +1060,29 @@
               placeholder="e.g. Gen Z audiophiles" /></div>
           <button onclick="genCompetitor()"
             class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Analyse Competitors</button>
+        </div>
+        <div id="analysis-market" class="sub-tab-content space-y-3">
+          <div><label for="mk-brand">Brand Name</label><input id="mk-brand" class="dark-input"
+              placeholder="e.g. NovaPulse" /></div>
+          <div><label for="mk-urls">Competitor URLs (comma separated)</label><textarea id="mk-urls" class="dark-input" rows="2"
+              placeholder="https://a.com, https://b.com"></textarea></div>
+          <div><label for="mk-tlds">TLDs (optional)</label><input id="mk-tlds" class="dark-input"
+              placeholder=".com, .ai, .co" /></div>
+          <button onclick="genMarketCheck()" class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Run Market Check</button>
+        </div>
+        <div id="analysis-consistency" class="sub-tab-content space-y-3">
+          <div><label for="cv-dna">Brand DNA</label><textarea id="cv-dna" class="dark-input" rows="2"
+              placeholder="Archetype, tone, colors, values..."></textarea></div>
+          <div><label for="cv-text">About Us / Text (optional)</label><textarea id="cv-text" class="dark-input" rows="3"
+              placeholder="Paste your text to evaluate..."></textarea></div>
+          <div>
+            <label for="cv-image">Or Upload an Image</label>
+            <input type="file" id="cv-image" class="dark-input" accept="image/*" />
+          </div>
+          <div class="flex gap-2">
+            <button onclick="genConsistencyText()" class="flex-1 btn-glow text-white font-bold text-sm py-3 rounded-2xl">Check Text</button>
+            <button onclick="genConsistencyImage()" class="flex-1 btn-outline text-white font-semibold text-sm py-3 rounded-2xl">Check Image</button>
+          </div>
         </div>
       </div>
 
@@ -1141,6 +1193,18 @@
             <label>Competitive Analysis</label>
             <div id="ca-result" class="result-area">
               <p class="text-slate-600 text-sm text-center pt-6">Competitor insights will appear here</p>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-white/8">
+            <label>Market Readiness Report</label>
+            <div id="mk-result" class="result-area">
+              <p class="text-slate-600 text-sm text-center pt-6">Market report will appear here</p>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-white/8">
+            <label>Brand Consistency</label>
+            <div id="cv-result" class="result-area">
+              <p class="text-slate-600 text-sm text-center pt-6">Consistency score will appear here</p>
             </div>
           </div>
         </div>
@@ -1302,13 +1366,23 @@
       const el = document.getElementById(parent + '-' + name);
       if (el) el.classList.add('active');
       // show matching result div in main panel
-      ['mc-result', 'sp-result', 'pd-result', 'ec-result', 'bs-result'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
-      });
-      const map = { marketing: 'mc-result', social: 'sp-result', product: 'pd-result', email: 'ec-result', story: 'bs-result' };
-      const target = document.getElementById(map[name]);
-      if (target) target.classList.remove('hidden');
+      if (parent === 'content') {
+        ['mc-result', 'sp-result', 'pd-result', 'ec-result', 'bs-result'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.add('hidden');
+        });
+        const map = { marketing: 'mc-result', social: 'sp-result', product: 'pd-result', email: 'ec-result', story: 'bs-result' };
+        const target = document.getElementById(map[name]);
+        if (target) target.classList.remove('hidden');
+      } else if (parent === 'analysis') {
+        ['sa-result', 'ca-result', 'mk-result', 'cv-result'].forEach(id => {
+          const el2 = document.getElementById(id);
+          if (el2) el2.classList.add('hidden');
+        });
+        const amap = { sentiment: 'sa-result', competitor: 'ca-result', market: 'mk-result', consistency: 'cv-result' };
+        const tgt = document.getElementById(amap[name]);
+        if (tgt) tgt.classList.remove('hidden');
+      }
     }
 
 

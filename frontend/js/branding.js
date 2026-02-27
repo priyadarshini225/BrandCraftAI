@@ -7,30 +7,35 @@
 
 // ─── Session ──────────────────────────────────────────────────────────────────
 let chatSessionId = "session_" + Date.now();
-document.addEventListener("DOMContentLoaded", () => {
+function applyHashNavigation() {
   const el = document.getElementById("session-id-display");
   if (el) el.textContent = chatSessionId;
-
-  // Open tab from URL hash (e.g. branding.html#logo)
   const hash = window.location.hash.replace("#", "");
-  const hashMap = {
-    "brand-names": "brand-names",
-    "logo": "logo",
-    "content": "content",
-    "design": "design",
-    "analysis": "analysis",
-    "chat": "chat",
-  };
-  if (hash && hashMap[hash]) {
-    const tabBtn = document.querySelector(`[onclick="switchTab('${hashMap[hash]}', this)"]`);
-    if (tabBtn) switchTab(hashMap[hash], tabBtn);
-    else {
-      // fallback: activate by id directly
-      const panel = document.getElementById(`tabpanel-${hashMap[hash]}`);
-      if (panel) { panel.classList.add("active"); }
-    }
+  const hashMap = { "brand-names":"brand-names","logo":"logo","content":"content","design":"design","analysis":"analysis","chat":"chat" };
+  if (!hash) return;
+  const [top, sub] = hash.split(":");
+  // Gracefully redirect old deck link to marketing content
+  const normalizedSub = (sub === "deck") ? "marketing" : sub;
+  const topKey = hashMap[top] ? top : (hashMap[hash] ? hash : null);
+  if (!topKey) return;
+  const tabBtn = document.querySelector(`[onclick="switchTab('${hashMap[topKey] || topKey}', this)"]`);
+  if (tabBtn) switchTab(hashMap[topKey] || topKey, tabBtn);
+  else {
+    const panel = document.getElementById(`tabpanel-${hashMap[topKey] || topKey}`);
+    if (panel) { panel.classList.add("active"); }
   }
-});
+  if (normalizedSub) {
+    setTimeout(() => {
+      const btn = document.querySelector(`#tabpanel-${hashMap[topKey] || topKey} .sub-tab-btn[onclick="switchSubTab('${hashMap[topKey] || topKey}','${normalizedSub}',this)"]`);
+      if (btn && typeof window.switchSubTab === "function") {
+        window.switchSubTab(hashMap[topKey] || topKey, normalizedSub, btn);
+      }
+    }, 50);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", applyHashNavigation);
+window.addEventListener("hashchange", applyHashNavigation);
 
 // ═══════════════════════════════════════════════════════════════════
 // GENERIC HELPERS
@@ -173,6 +178,152 @@ async function genBrandNames() {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MARKET READINESS REPORT
+// ─────────────────────────────────────────────────────────────────────────────
+async function genMarketCheck() {
+  const brand_name = document.getElementById("mk-brand").value.trim();
+  const urlsText = document.getElementById("mk-urls").value.trim();
+  const tldsText = document.getElementById("mk-tlds").value.trim();
+  if (!brand_name || !urlsText) {
+    showErr("mk-result", "Please fill in Brand Name and Competitor URLs.");
+    return;
+  }
+  loading("mk-result", "Running market readiness report...");
+  try {
+    const qs = new URLSearchParams({
+      brand_name,
+      competitor_urls: urlsText,
+    });
+    if (tldsText) qs.set("tlds", tldsText);
+    const res = await fetch(`${API_BASE}/api/market-check?${qs.toString()}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+    renderMarketCheck("mk-result", data.data);
+  } catch (e) {
+    showErr("mk-result", e.message);
+  }
+}
+
+function renderMarketCheck(containerId, data) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const comp = (data.competitors || []).map(c => `
+    <div class="p-3 rounded-xl bg-white/5 border border-white/10">
+      <p class="text-white text-sm font-semibold">${c.title || c.url || "Unknown"}</p>
+      ${c.meta_description ? `<p class="text-xs text-slate-400 mt-1">${c.meta_description}</p>` : ""}
+      ${c.hex_codes && c.hex_codes.length ? `
+        <div class="flex gap-1 mt-2">${c.hex_codes.slice(0,8).map(h => `
+          <span title="${h}" class="w-4 h-4 rounded border border-white/20" style="background:${h}"></span>
+        `).join("")}</div>` : ""}
+    </div>
+  `).join("");
+
+  const domains = data.domains ? Object.entries(data.domains).map(([dom, info]) => `
+    <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+      <span class="text-xs text-white">${dom}</span>
+      <span class="text-xs ${info.available ? "text-emerald-400" : "text-rose-400"}">
+        ${info.available === true ? "Available" : info.available === false ? "Taken" : "Unknown"}
+      </span>
+    </div>`).join("") : "";
+
+  const risk = data.name_risk;
+  const risks = risk && risk.languages ? risk.languages.map(r => `
+    <li class="text-xs ${r.severity === "high" ? "text-rose-400" : r.severity === "med" ? "text-amber-300" : "text-slate-300"}">• ${r.lang}: ${r.issue} (${r.severity})</li>
+  `).join("") : "";
+
+  el.innerHTML = `
+    <div style="animation:fadeInUp 0.4s ease-out" class="space-y-4">
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Positioning</p>
+        <div class="p-3 rounded-xl bg-white/5 border border-white/10 whitespace-pre-wrap text-sm text-gray-200">${(data.positioning || "").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Competitors</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          ${comp || '<p class="text-xs text-slate-500">No competitors parsed.</p>'}
+        </div>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Domains</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">${domains || '<p class="text-xs text-slate-500">No domain data.</p>'}</div>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Name Risk</p>
+        ${risks ? `<ul class="space-y-1">${risks}</ul>` : '<p class="text-xs text-slate-500">No risks flagged.</p>'}
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONSISTENCY VALIDATOR
+// ─────────────────────────────────────────────────────────────────────────────
+async function genConsistencyText() {
+  const brand_dna = document.getElementById("cv-dna").value.trim();
+  const about_text = document.getElementById("cv-text").value.trim();
+  if (!brand_dna || !about_text) {
+    showErr("cv-result", "Please provide Brand DNA and Text.");
+    return;
+  }
+  loading("cv-result", "Checking text consistency...");
+  try {
+    const res = await post("/api/validate-consistency", { brand_dna, about_text });
+    renderConsistency("cv-result", res.data);
+  } catch (e) {
+    showErr("cv-result", e.message);
+  }
+}
+
+async function genConsistencyImage() {
+  const brand_dna = document.getElementById("cv-dna").value.trim();
+  const f = document.getElementById("cv-image").files[0];
+  if (!brand_dna || !f) {
+    showErr("cv-result", "Please provide Brand DNA and choose an image.");
+    return;
+  }
+  loading("cv-result", "Checking image consistency...");
+  try {
+    const form = new FormData();
+    form.append("brand_dna", brand_dna);
+    form.append("image", f, f.name);
+    const resp = await fetch(`${API_BASE}/api/validate-consistency-image`, { method: "POST", body: form });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
+    if (data && data.success && data.data) {
+      renderConsistency("cv-result", data.data);
+    } else {
+      throw new Error(typeof data === 'object' ? JSON.stringify(data) : 'Unexpected response');
+    }
+  } catch (e) {
+    const msg = (e && e.message) ? e.message : String(e);
+    showErr("cv-result", msg);
+  }
+}
+
+function renderConsistency(containerId, data) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (data.raw) { showText(containerId, data.raw, "Consistency"); return; }
+  const score = data.score ?? Math.round((data.brand_alignment_score || 0) * 100);
+  const verdict = data.verdict || "Result";
+  const reasons = (data.reasons || []).map(r => `<li class="text-xs text-amber-300">• ${r}</li>`).join("");
+  const fixes = (data.fixes || []).map(r => `<li class="text-xs text-emerald-300">• ${r}</li>`).join("");
+  el.innerHTML = `
+    <div style="animation:fadeInUp 0.4s ease-out" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Consistency Score</p>
+        <p class="text-lg font-bold text-cyan-300">${score}%</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Verdict</p>
+        <p class="text-sm text-white font-semibold">${verdict}</p>
+      </div>
+      ${reasons ? `<div><p class="text-xs text-gray-500 mb-1">What feels off</p><ul class="space-y-1">${reasons}</ul></div>` : ""}
+      ${fixes ? `<div><p class="text-xs text-gray-500 mb-1">Suggestions</p><ul class="space-y-1">${fixes}</ul></div>` : ""}
+    </div>`;
+}
+
+// Deck feature removed from UI per request
 // ═══════════════════════════════════════════════════════════════════
 // TAB 2 — LOGO GENERATOR
 // ═══════════════════════════════════════════════════════════════════
@@ -184,16 +335,32 @@ async function genLogoPrompt() {
   const description    = document.getElementById("logo-desc").value.trim();
   const colors         = document.getElementById("logo-colors").value.trim();
   const mood           = document.getElementById("logo-mood").value.trim();
+  const minimalism = parseInt(document.getElementById("slider-minimalism")?.value || "0", 10);
+  const complexity = parseInt(document.getElementById("slider-complexity")?.value || "0", 10);
+  const vibrancy = parseInt(document.getElementById("slider-vibrancy")?.value || "0", 10);
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
     return;
   }
-  loading("logo-prompt-result", "Building Gemini logo prompt...");
+  loading("logo-prompt-result", "Building logo prompt...");
   document.getElementById("logo-prompt-result").style.display = "block";
   try {
     const res = await post("/api/generate-logo-prompt", { brand_name, industry, style_keywords, description, colors, mood });
-    showText("logo-prompt-result", res.data, "Gemini Logo Prompt");
+    let promptTxt = res.data || "";
+    // Dynamic Prompting adjustments based on sliders
+    if (minimalism >= 80) {
+      promptTxt += ", vector, flat design, simple lines, white background";
+    }
+    if (vibrancy >= 80) {
+      promptTxt += ", neon, high contrast, bold colors";
+    }
+    if (complexity >= 80) {
+      promptTxt += ", intricate details, ornate, complex geometry";
+    } else if (complexity <= 20) {
+      promptTxt += ", ultra minimal, few elements, monoline";
+    }
+    showText("logo-prompt-result", promptTxt, "Logo Prompt");
   } catch (e) {
     showErr("logo-prompt-result", e.message);
   }
@@ -206,19 +373,22 @@ async function genLogo() {
   const description    = document.getElementById("logo-desc").value.trim();
   const colors         = document.getElementById("logo-colors").value.trim();
   const mood           = document.getElementById("logo-mood").value.trim();
+  const minimalism = parseInt(document.getElementById("slider-minimalism")?.value || "0", 10);
+  const complexity = parseInt(document.getElementById("slider-complexity")?.value || "0", 10);
+  const vibrancy = parseInt(document.getElementById("slider-vibrancy")?.value || "0", 10);
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
     return;
   }
-  loading("logo-result", "Creating your logo with Pollinations.ai FLUX — this may take up to 30s...");
+  loading("logo-result", "Creating your logo with HuggingFace FLUX — this may take up to 30s...");
   document.getElementById("logo-prompt-result").style.display = "none";
   try {
-    const res = await post("/api/generate-logo", { brand_name, industry, style_keywords, description, colors, mood });
+    const res = await post("/api/generate-logo", { brand_name, industry, style_keywords, description, colors, mood, minimalism, complexity, vibrancy });
     const imageUrl = `${API_BASE}${res.data.image_url}`;
     document.getElementById("logo-result").innerHTML = `
       <div style="animation:scaleIn 0.5s ease-out">
-        <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">Generated Logo (FLUX · Pollinations.ai)</p>
+        <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">Generated Logo (FLUX · HuggingFace)</p>
         <img src="${imageUrl}" alt="Logo for ${brand_name}" class="max-w-full max-h-72 rounded-xl border border-white/10 mx-auto block" />
         <div class="flex gap-3 mt-4 justify-center">
           <a href="${imageUrl}" download="${brand_name}_logo.png"
@@ -667,6 +837,31 @@ function removeTypingIndicator(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
 }
+
+// Attach dynamic re-generation on slider mouseUp
+document.addEventListener("DOMContentLoaded", () => {
+  ["slider-minimalism", "slider-complexity", "slider-vibrancy"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("mouseup", () => {
+        // Re-generate image when slider released if required fields present
+        const brand_name = document.getElementById("logo-name")?.value?.trim();
+        const industry = document.getElementById("logo-industry")?.value?.trim();
+        if (brand_name && industry) {
+          genLogo();
+        }
+      });
+      // also on touchend for mobile
+      el.addEventListener("touchend", () => {
+        const brand_name = document.getElementById("logo-name")?.value?.trim();
+        const industry = document.getElementById("logo-industry")?.value?.trim();
+        if (brand_name && industry) {
+          genLogo();
+        }
+      }, { passive: true });
+    }
+  });
+});
 
 async function clearChat() {
   try {
