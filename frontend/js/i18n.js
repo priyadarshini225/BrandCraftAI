@@ -37,7 +37,7 @@ const TRANSLATIONS = {
     why_multi: "Multilingual",
     why_voice: "Voice Input",
     why_pro: "Professional Output",
-    footer_text: "\u00a9 2025 BizForge \u2014 Powered by IBM Granite, Groq AI & Stable Diffusion XL",
+    footer_text: "\u00a9 2026 BizForge \u2014 Powered by IBM Granite, Groq AI & Stable Diffusion XL",
     loading: "AI is creating your brand...",
     copy: "Copy",
     copied: "Copied!",
@@ -46,18 +46,18 @@ const TRANSLATIONS = {
     studio_subtitle: "Define your brand essence below",
     tab_names: "Names",
     tab_logo: "Logo",
-    tab_copy: "Copy",
+    tab_copy: "Content",
     tab_design: "Design",
     tab_analysis: "Analysis",
     tab_chat: "Chat",
     gen_brand_names: "Generate Brand Names",
     gen_logo: "Generate Logo",
     gen_content: "Generate Content",
-    gen_posts: "Generate Posts",
+    gen_posts: "Generate Content",
     gen_desc: "Generate Description",
     hero_line1: "Build Your Brand",
     hero_cta_start: "Start Creating \u2192",
-    footer_copy: "\u00a9 2025 BrandCraft AI. All rights reserved.",
+    footer_copy: "\u00a9 2026 BrandCraft AI. All rights reserved.",
   },
   es: {
     nav_features: "Funciones",
@@ -91,7 +91,7 @@ const TRANSLATIONS = {
     why_multi: "Multing\u00fce",
     why_voice: "Entrada de Voz",
     why_pro: "Salida Profesional",
-    footer_text: "\u00a9 2025 BizForge \u2014 Impulsado por IBM Granite, Groq AI y Stable Diffusion XL",
+    footer_text: "\u00a9 2026 BizForge \u2014 Impulsado por IBM Granite, Groq AI y Stable Diffusion XL",
     loading: "La IA est\u00e1 creando tu marca...",
     copy: "Copiar",
     copied: "\u00a1Copiado!",
@@ -100,7 +100,7 @@ const TRANSLATIONS = {
     studio_subtitle: "Define la esencia de tu marca",
     tab_names: "Nombres",
     tab_logo: "Logo",
-    tab_copy: "Copia",
+    tab_copy: "Contenido",
     tab_design: "Dise\u00f1o",
     tab_analysis: "An\u00e1lisis",
     tab_chat: "Chat",
@@ -111,7 +111,7 @@ const TRANSLATIONS = {
     gen_desc: "Generar Descripci\u00f3n",
     hero_line1: "Construye tu Marca",
     hero_cta_start: "Comenzar a Crear \u2192",
-    footer_copy: "\u00a9 2025 BrandCraft AI. Todos los derechos reservados.",
+    footer_copy: "\u00a9 2026 BrandCraft AI. Todos los derechos reservados.",
   },
   fr: {
     nav_features: "Fonctionnalit\u00e9s",
@@ -145,7 +145,7 @@ const TRANSLATIONS = {
     why_multi: "Multilingue",
     why_voice: "Entr\u00e9e Vocale",
     why_pro: "Sortie Professionnelle",
-    footer_text: "\u00a9 2025 BizForge \u2014 Propuls\u00e9 par IBM Granite, Groq AI et Stable Diffusion XL",
+    footer_text: "\u00a9 2026 BizForge \u2014 Propuls\u00e9 par IBM Granite, Groq AI et Stable Diffusion XL",
     loading: "L'IA cr\u00e9e votre marque...",
     copy: "Copier",
     copied: "Copi\u00e9!",
@@ -154,7 +154,7 @@ const TRANSLATIONS = {
     studio_subtitle: "D\u00e9finissez l'essence de votre marque",
     tab_names: "Noms",
     tab_logo: "Logo",
-    tab_copy: "Copie",
+    tab_copy: "Contenu",
     tab_design: "Design",
     tab_analysis: "Analyse",
     tab_chat: "Chat",
@@ -165,7 +165,7 @@ const TRANSLATIONS = {
     gen_desc: "G\u00e9n\u00e9rer une Description",
     hero_line1: "Construisez votre Marque",
     hero_cta_start: "Commencer \u00e0 Cr\u00e9er \u2192",
-    footer_copy: "\u00a9 2025 BrandCraft AI. Tous droits r\u00e9serv\u00e9s.",
+    footer_copy: "\u00a9 2026 BrandCraft AI. Tous droits r\u00e9serv\u00e9s.",
   },
   de: {
     nav_features: "Funktionen",
@@ -199,7 +199,7 @@ const TRANSLATIONS = {
     why_multi: "Mehrsprachig",
     why_voice: "Spracheingabe",
     why_pro: "Professionelle Ausgabe",
-    footer_text: "\u00a9 2025 BizForge \u2014 Betrieben von IBM Granite, Groq AI & Stable Diffusion XL",
+    footer_text: "\u00a9 2026 BizForge \u2014 Betrieben von IBM Granite, Groq AI & Stable Diffusion XL",
     loading: "KI erstellt deine Marke...",
     copy: "Kopieren",
     copied: "Kopiert!",
@@ -208,7 +208,7 @@ const TRANSLATIONS = {
     studio_subtitle: "Definiere die Essenz deiner Marke",
     tab_names: "Namen",
     tab_logo: "Logo",
-    tab_copy: "Kopie",
+    tab_copy: "Inhalt",
     tab_design: "Design",
     tab_analysis: "Analyse",
     tab_chat: "Chat",
@@ -219,7 +219,7 @@ const TRANSLATIONS = {
     gen_desc: "Beschreibung generieren",
     hero_line1: "Baue deine Marke auf",
     hero_cta_start: "Jetzt starten \u2192",
-    footer_copy: "\u00a9 2025 BrandCraft AI. Alle Rechte vorbehalten.",
+    footer_copy: "\u00a9 2026 BrandCraft AI. Alle Rechte vorbehalten.",
   },
   hi: {
     nav_features: "\u0938\u0941\u0935\u093f\u0927\u093e\u090f\u0902",
@@ -253,7 +253,7 @@ const TRANSLATIONS = {
     why_multi: "\u092c\u0939\u0941\u092d\u093e\u0937\u0940",
     why_voice: "\u0935\u0949\u092f\u0938 \u0907\u0928\u092a\u0941\u091f",
     why_pro: "\u092a\u0947\u0936\u0947\u0935\u0930 \u0906\u0909\u091f\u092a\u0941\u091f",
-    footer_text: "\u00a9 2025 BizForge \u2014 IBM Granite, Groq AI \u0914\u0930 Stable Diffusion XL \u0926\u094d\u0935\u093e\u0930\u093e \u0938\u0902\u091a\u093e\u0932\u093f\u0924",
+    footer_text: "\u00a9 2026 BizForge \u2014 IBM Granite, Groq AI \u0914\u0930 Stable Diffusion XL \u0926\u094d\u0935\u093e\u0930\u093e \u0938\u0902\u091a\u093e\u0932\u093f\u0924",
     loading: "AI \u0906\u092a\u0915\u093e \u092c\u094d\u0930\u093e\u0902\u0921 \u092c\u0928\u093e \u0930\u0939\u093e \u0939\u0948...",
     copy: "\u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902",
     copied: "\u0915\u0949\u092a\u0940 \u0939\u094b \u0917\u092f\u093e!",
@@ -273,7 +273,7 @@ const TRANSLATIONS = {
     gen_desc: "\u0935\u093f\u0935\u0930\u0923 \u091c\u0947\u0928\u0930\u0947\u091f \u0915\u0930\u0947\u0902",
     hero_line1: "\u0905\u092a\u0928\u093e \u092c\u094d\u0930\u093e\u0902\u0921 \u092c\u0928\u093e\u090f\u0902",
     hero_cta_start: "\u092c\u0928\u093e\u0928\u093e \u0936\u0941\u0930\u0942 \u0915\u0930\u0947\u0902 \u2192",
-    footer_copy: "\u00a9 2025 BrandCraft AI. \u0938\u0930\u094d\u0935\u093e\u0927\u093f\u0915\u093e\u0930 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924\u0964",
+    footer_copy: "\u00a9 2026 BrandCraft AI. \u0938\u0930\u094d\u0935\u093e\u0927\u093f\u0915\u093e\u0930 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924\u0964",
   },
 };
 let currentLang = "en";
@@ -318,7 +318,7 @@ const t = translate;
 // ── Robust initialisation ─────────────────────────────────────────────────────
 // Works whether DOMContentLoaded has already fired or not (handles bfcache, defer, etc.)
 function _initI18n() {
-  const saved    = localStorage.getItem("bizforge_lang") || "en";
+  const saved = localStorage.getItem("bizforge_lang") || "en";
   const selector = document.getElementById("lang-selector");
   if (selector) {
     selector.value = saved;
