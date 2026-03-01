@@ -1,7 +1,7 @@
 # ⬡ BizForge / BrandPilot AI
 **GenAI-Powered End-to-End Branding Platform**
 
-> Build complete brand identities in seconds using Groq LLaMA-3.3-70B, IBM Granite 3.3, and Stable Diffusion XL.
+> Build complete brand identities in seconds using Groq LLaMA-3.3-70B, IBM Granite 3.3, and FLUX (via Pollinations.ai).
 
 ---
 
@@ -70,14 +70,14 @@ BrandCraftAI/
 |---------|-------|----------|
 | Brand Names, Taglines, Content | LLaMA-3.3-70B | Groq Cloud |
 | Branding Chatbot | IBM Granite 3.3-8B-Instruct | HuggingFace |
-| Logo Image Generation | Stable Diffusion XL | HuggingFace |
+| Logo Image Generation | FLUX | Pollinations.ai |
 | Voice Transcription | Whisper Large v3 | Groq Cloud |
 
 ---
 
 ## 📡 API Endpoints
 
-All endpoints are `POST` at `http://localhost:8000`:
+All endpoints are `POST` at `http://localhost:8000` (unless marked `GET`):
 
 | Endpoint | Description |
 |----------|-------------|
@@ -90,10 +90,15 @@ All endpoints are `POST` at `http://localhost:8000`:
 | `/api/generate-email-campaign` | 3-email campaign sequence |
 | `/api/generate-brand-guidelines` | Full brand guidelines doc |
 | `/api/get-color-palette` | HEX color palette + rationale |
-| `/api/generate-logo-prompt` | SDXL-optimised logo prompt |
-| `/api/generate-logo` | Logo PNG via Stable Diffusion XL |
+| `/api/generate-logo-prompt` | FLUX-optimised logo prompt |
+| `/api/generate-logo` | Logo PNG via FLUX |
 | `/api/analyze-sentiment` | Sentiment + brand alignment |
 | `/api/analyze-competitors` | Competitive analysis |
+| `/api/market-check` (GET) | Comprehensive Market Readiness Report |
+| `/api/generate-moodboard` | AI-generated design moodboard |
+| `/api/generate-pitch-deck` | Content + PPTX file generation |
+| `/api/validate-consistency` | Brand DNA & Text Consistency Validator |
+| `/api/validate-consistency-image` | Brand DNA & Image Consistency Validator |
 | `/api/chat` | Multi-turn IBM Granite chatbot |
 | `/api/transcribe-voice` | Audio → text (Whisper) |
 
@@ -111,15 +116,21 @@ All endpoints are `POST` at `http://localhost:8000`:
 - [x] Email campaign sequences (3-email)
 - [x] Brand guidelines document
 
-### Image Generation (Stable Diffusion XL)
-- [x] Logo generation via SDXL
-- [x] Groq-generated optimised SDXL prompts
+### Image Generation (FLUX via Pollinations.ai)
+- [x] Logo generation via FLUX
+- [x] Groq-generated optimised logo prompts
 - [x] Logo download as PNG
 
 ### Design System
 - [x] 5-color brand palette with HEX codes
 - [x] Color swatch UI with click-to-copy
 - [x] Brand guidelines document
+- [x] Brand Moodboard Generation
+
+### Strategy & Validation
+- [x] Market Readiness Check
+- [x] Pitch Deck Generation (Content + PPTX)
+- [x] Brand DNA Consistency Validator (Text & Images)
 
 ### Analysis
 - [x] Sentiment analysis with score visualization
