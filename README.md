@@ -95,7 +95,6 @@ All endpoints are `POST` at `http://localhost:8000` (unless marked `GET`):
 | `/api/analyze-sentiment` | Sentiment + brand alignment |
 | `/api/analyze-competitors` | Competitive analysis |
 | `/api/market-check` (GET) | Comprehensive Market Readiness Report |
-| `/api/generate-moodboard` | AI-generated design moodboard |
 | `/api/generate-pitch-deck` | Content + PPTX file generation |
 | `/api/validate-consistency` | Brand DNA & Text Consistency Validator |
 | `/api/validate-consistency-image` | Brand DNA & Image Consistency Validator |
@@ -125,7 +124,6 @@ All endpoints are `POST` at `http://localhost:8000` (unless marked `GET`):
 - [x] 5-color brand palette with HEX codes
 - [x] Color swatch UI with click-to-copy
 - [x] Brand guidelines document
-- [x] Brand Moodboard Generation
 
 ### Strategy & Validation
 - [x] Market Readiness Check
@@ -141,7 +139,6 @@ All endpoints are `POST` at `http://localhost:8000` (unless marked `GET`):
 - [x] Multi-turn IBM Granite chatbot
 - [x] Voice input (Groq Whisper)
 - [x] Session management
-- [x] Conversation history
 
 ### UI/UX
 - [x] Animated gradient background
