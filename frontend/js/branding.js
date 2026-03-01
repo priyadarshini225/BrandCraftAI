@@ -11,7 +11,7 @@ function applyHashNavigation() {
   const el = document.getElementById("session-id-display");
   if (el) el.textContent = chatSessionId;
   const hash = window.location.hash.replace("#", "");
-  const hashMap = { "brand-names":"brand-names","logo":"logo","content":"content","design":"design","analysis":"analysis","chat":"chat" };
+  const hashMap = { "brand-names": "brand-names", "logo": "logo", "content": "content", "design": "design", "analysis": "analysis", "chat": "chat" };
   if (!hash) return;
   const [top, sub] = hash.split(":");
   // Gracefully redirect old deck link to marketing content
@@ -65,13 +65,13 @@ function loading(id, msg = "AI is generating your content...") {
   if (!el) return;
   el.innerHTML = `
     <div class="flex flex-col items-center gap-4 py-8">
-      <div class="w-full h-1 rounded-full overflow-hidden bg-white/10">
+      <div class="w-full h-1 rounded-full overflow-hidden bg-white/60 dark:bg-white/10">
         <div class="h-full rounded-full"
           style="width:0%;background:linear-gradient(90deg,#7c3aed,#06b6d4,#ec4899);
                  animation:loadingBar 3s ease-in-out forwards;background-size:200%">
         </div>
       </div>
-      <p class="text-cyan-300 text-sm font-medium">
+      <p class="text-[#7DB5A0] dark:text-cyan-300 text-sm font-medium">
         <span style="animation:blink 1s step-end infinite">▌</span> ${msg}
       </p>
     </div>`;
@@ -83,14 +83,26 @@ function loading(id, msg = "AI is generating your content...") {
 function showText(id, text, title = "") {
   const el = document.getElementById(id);
   if (!el) return;
-  const escaped = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // Detect if text contains markdown headers, bold, or lists
+  const isMarkdown = typeof text === 'string' && (text.includes('**') || text.includes('#') || text.includes('- '));
+
+  // Parse with marked if available, otherwise just escape
+  let contentHtml = "";
+  if (isMarkdown && typeof marked !== 'undefined') {
+    contentHtml = `<div class="markdown-prose text-[#1A1A1A] dark:text-gray-200 text-sm leading-relaxed font-sans">${marked.parse(text)}</div>`;
+  } else {
+    const escaped = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    contentHtml = `<pre class="whitespace-pre-wrap text-[#1A1A1A] dark:text-gray-200 text-sm leading-relaxed font-sans">${escaped}</pre>`;
+  }
+
   el.innerHTML = `
     <div style="animation:fadeInUp 0.4s ease-out">
-      ${title ? `<p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">${title}</p>` : ""}
-      <pre class="whitespace-pre-wrap text-gray-200 text-sm leading-relaxed font-sans">${escaped}</pre>
+      ${title ? `<p class="text-[#7DB5A0] dark:text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">${title}</p>` : ""}
+      ${contentHtml}
       <button onclick='copyText(this, ${JSON.stringify(text)})'
-        class="mt-3 px-4 py-1.5 text-xs font-semibold rounded-full border border-violet-500/50
-               text-violet-300 hover:bg-violet-500/20 transition-all duration-200">
+        class="mt-3 px-4 py-1.5 text-xs font-semibold rounded-full border border-[#FF5F6D]/50 dark:border-violet-500/50
+               text-[#FF5F6D] dark:text-violet-300 hover:bg-[#FF5F6D]/20 dark:bg-violet-500/20 transition-all duration-200">
         📋 Copy
       </button>
     </div>`;
@@ -103,8 +115,8 @@ function copyText(btn, text) {
   navigator.clipboard.writeText(text).then(() => {
     const orig = btn.innerHTML;
     btn.innerHTML = "✅ Copied!";
-    btn.classList.add("text-emerald-400");
-    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove("text-emerald-400"); }, 2000);
+    btn.classList.add("text-[#7DB5A0] dark:text-emerald-400");
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove("text-[#7DB5A0] dark:text-emerald-400"); }, 2000);
   }).catch(() => alert("Copy failed. Please copy manually."));
 }
 
@@ -115,7 +127,7 @@ function showErr(id, msg) {
   const el = document.getElementById(id);
   if (!el) return;
   el.innerHTML = `
-    <div class="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30"
+    <div class="flex items-center gap-3 p-4 rounded-xl bg-[#FF5F6D]/10 dark:bg-red-500/10 border border-red-500/30"
          style="animation:fadeInUp 0.3s ease-out">
       <span class="text-2xl">⚠️</span>
       <div>
@@ -123,6 +135,91 @@ function showErr(id, msg) {
         <p class="text-red-300 text-xs mt-1">${msg}</p>
       </div>
     </div>`;
+}
+
+/**
+ * Display text content as animated cards if it looks like a list,
+ * otherwise fall back to a single card display.
+ */
+function displayContentCards(id, text, title = "") {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  // Split text into lines to detect lists or paragraphs
+  const lines = text.split('\n').filter(l => l.trim().length > 0);
+  let cardsData = [];
+
+  // Very basic markdown list parsing
+  // Matches "1. Text", "- Text", "* Text", "• Text", "Title: Text"
+  const listRegex = /^((?:\d+\.|\-|\*|•)\s+|\*\*?([^:]+):\*\*?\s+)(.*)$/;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Skip introductory text (like "Here are some slogans:")
+    if (i === 0 && (line.toLowerCase().includes("here are") || line.toLowerCase().includes("certainly") || !line.match(listRegex)) && lines.length > 2) {
+      if (line.length < 150) continue; // Skip short intros
+    }
+
+    const match = line.match(listRegex);
+    if (match && match[3]) {
+      // It's a list item
+      const titleText = match[2] ? match[2].trim() : `Option ${cardsData.length + 1}`;
+      cardsData.push({ title: titleText, fullLine: line });
+    } else if (line.length > 20) {
+      // Just a raw paragraph, treat as a card if it's substantial
+      cardsData.push({ title: `Option ${cardsData.length + 1}`, fullLine: line });
+    }
+  }
+
+  // If we couldn't parse it well, just show it as a single card
+  if (cardsData.length === 0 || cardsData.length === 1) {
+    cardsData = [{ title: "Generated Content", fullLine: text }];
+  }
+
+  // Ensure title displays at the top
+  const titleHtml = title ? `<p class="text-[#7DB5A0] dark:text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-4 animate-[fadeInUp_0.4s_ease-out]">${title}</p>` : "";
+
+  const cardsHtml = cardsData.map((item, index) => {
+    // Parse markdown bold **text** -> span
+    let displayHtml = item.fullLine.replace(/\*\*(.*?)\*\*/g, '<span class="font-bold text-[#1A1A1A] dark:text-white">$1</span>');
+
+    // Clean up purely markdown list prefixes if we pulled a title out
+    displayHtml = displayHtml.replace(/^(\d+\.|\-|\*|•)\s+/, '');
+
+    // Escape for inline copy
+    const safeText = item.fullLine.replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, '\\n');
+
+    return `
+    <div class="brand-result-card relative group p-5 flex flex-col justify-between overflow-hidden mb-4" 
+         style="animation: fadeInUp 0.5s ease-out forwards; animation-delay: ${index * 0.1}s; opacity: 0;"
+         onclick="copyText(this, '${safeText}')">
+      
+      <!-- Subtle top gradient glow on hover -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF5F6D] to-[#F4A0A0] dark:from-violet-500 dark:to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-2 h-2 rounded-full bg-[#FF5F6D] dark:bg-violet-400 opacity-50 shadow-[0_0_8px_rgba(255,95,109,0.5)] dark:shadow-[0_0_8px_rgba(139,92,246,0.5)]"></div>
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500 relative inline-block group-hover:text-[#FF5F6D] dark:group-hover:text-violet-300 transition-colors duration-300">
+            ${item.title}
+          </h4>
+        </div>
+        
+        <p class="text-sm text-gray-700 dark:text-slate-300 leading-relaxed font-sans">
+           ${displayHtml}
+        </p>
+      </div>
+      
+      <div class="mt-4 flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style="transition-delay: 50ms;">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-[#FF5F6D] dark:text-violet-400">📋 Copy</span>
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  el.innerHTML = `<div>${titleHtml}${cardsHtml}</div>`;
 }
 
 /**
@@ -150,7 +247,7 @@ async function genBrandNames() {
     showErr("bn-result", "Please fill in Industry and Keywords fields.");
     return;
   }
-  loading("bn-result", "Generating brand names with LLaMA-3.3-70B...");
+  loading("bn-result", "Generating brand names...");
   try {
     const res = await post("/api/generate-brand-names", {
       industry, keywords, tone, description, language: getLanguageName(),
@@ -176,6 +273,85 @@ async function genBrandNames() {
   } catch (e) {
     showErr("bn-result", e.message);
   }
+}
+
+/**
+ * Display JSON brand names as interactive UI cards.
+ */
+function displayBrandCards(namesData) {
+  const el = document.getElementById("bn-result");
+  if (!el) return;
+
+  const cardsHtml = namesData.map((item, index) => {
+    // Escape single quotes for inline JS
+    const safeName = item.name.replace(/'/g, "\\'");
+    // Empty p tag that we will fill with JS
+    return `
+    <div class="brand-result-card relative group p-5 flex flex-col justify-between overflow-hidden" 
+         style="animation: fadeInUp 0.5s ease-out forwards; animation-delay: ${index * 0.15}s; opacity: 0;"
+         onclick="copyText(this, '${safeName}')">
+      
+      <!-- Subtle top gradient glow on hover to feel 'active' -->
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#FF5F6D] to-[#F4A0A0] dark:from-violet-500 dark:to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-8 h-8 rounded-full bg-[#FF5F6D]/10 dark:bg-violet-500/10 text-[#FF5F6D] dark:text-violet-400 flex items-center justify-center font-bold text-xs"
+               style="animation: scaleIn 0.4s ease-out forwards; animation-delay: ${(index * 0.15) + 0.2}s; opacity: 0;">
+            ${item.name.charAt(0)}
+          </div>
+          <h4 class="text-xl font-bold font-display text-[#1A1A1A] dark:text-white relative inline-block group-hover:text-[#FF5F6D] dark:group-hover:text-violet-300 transition-colors duration-300"
+              style="animation: fadeIn 0.4s ease-out forwards; animation-delay: ${(index * 0.15) + 0.3}s; opacity: 0;">
+            ${item.name}
+          </h4>
+        </div>
+        
+        <p id="desc-${index}" class="text-xs text-gray-600 dark:text-slate-400 leading-relaxed mt-3 min-h-[40px]"
+           style="opacity: 0; transition: opacity 0.3s ease;">
+           <!-- Text will be typed here -->
+        </p>
+      </div>
+      
+      <div class="mt-4 flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" style="transition-delay: 50ms;">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-[10px] font-bold uppercase tracking-wider text-[#FF5F6D] dark:text-violet-400">Copy Name</span>
+      </div>
+    </div>
+  `;
+  }).join('');
+
+  el.innerHTML = cardsHtml;
+
+  // Typewriter effect function
+  const typeWriter = (elementId, text, speed, delay) => {
+    setTimeout(() => {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.style.opacity = '1'; // Fade in the container first
+      el.innerHTML = '<span class="typing-cursor">|</span>'; // Add a cursor
+      let i = 0;
+      const type = () => {
+        if (i < text.length) {
+          // Replace cursor, add char, append cursor
+          el.innerHTML = text.substring(0, i + 1) + '<span class="typing-cursor font-normal opacity-50">|</span>';
+          i++;
+          setTimeout(type, speed + (Math.random() * 10 - 5)); // Add slight randomness to typing speed
+        } else {
+          // Remove cursor when done
+          el.innerHTML = text;
+        }
+      };
+      type();
+    }, delay);
+  };
+
+  // Trigger typewriter for each card's description after they fade in
+  namesData.forEach((item, index) => {
+    // Start typing shortly after the card itself finishes animating in.
+    // Base delay for whole block + stagger delay + animation time
+    const startDelay = (index * 150) + 600;
+    typeWriter(`desc-${index}`, item.rationale, 15, startDelay);
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -209,48 +385,48 @@ function renderMarketCheck(containerId, data) {
   const el = document.getElementById(containerId);
   if (!el) return;
   const comp = (data.competitors || []).map(c => `
-    <div class="p-3 rounded-xl bg-white/5 border border-white/10">
-      <p class="text-white text-sm font-semibold">${c.title || c.url || "Unknown"}</p>
-      ${c.meta_description ? `<p class="text-xs text-slate-400 mt-1">${c.meta_description}</p>` : ""}
+    <div class="p-3 rounded-xl bg-white/60 dark:bg-white/5 border border-[#C8D5C0] dark:border-white/10">
+      <p class="text-[#1A1A1A] dark:text-white text-sm font-semibold">${c.title || c.url || "Unknown"}</p>
+      ${c.meta_description ? `<p class="text-xs text-gray-600 dark:text-slate-400 mt-1">${c.meta_description}</p>` : ""}
       ${c.hex_codes && c.hex_codes.length ? `
-        <div class="flex gap-1 mt-2">${c.hex_codes.slice(0,8).map(h => `
-          <span title="${h}" class="w-4 h-4 rounded border border-white/20" style="background:${h}"></span>
+        <div class="flex gap-1 mt-2">${c.hex_codes.slice(0, 8).map(h => `
+          <span title="${h}" class="w-4 h-4 rounded border border-[#C8D5C0] dark:border-white/20" style="background:${h}"></span>
         `).join("")}</div>` : ""}
     </div>
   `).join("");
 
   const domains = data.domains ? Object.entries(data.domains).map(([dom, info]) => `
-    <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
-      <span class="text-xs text-white">${dom}</span>
-      <span class="text-xs ${info.available ? "text-emerald-400" : "text-rose-400"}">
+    <div class="flex items-center justify-between p-2 rounded-lg bg-white/60 dark:bg-white/5 border border-[#C8D5C0] dark:border-white/10">
+      <span class="text-xs text-[#1A1A1A] dark:text-white">${dom}</span>
+      <span class="text-xs ${info.available ? "text-[#7DB5A0] dark:text-emerald-400" : "text-[#FF5F6D] dark:text-rose-400"}">
         ${info.available === true ? "Available" : info.available === false ? "Taken" : "Unknown"}
       </span>
     </div>`).join("") : "";
 
   const risk = data.name_risk;
   const risks = risk && risk.languages ? risk.languages.map(r => `
-    <li class="text-xs ${r.severity === "high" ? "text-rose-400" : r.severity === "med" ? "text-amber-300" : "text-slate-300"}">• ${r.lang}: ${r.issue} (${r.severity})</li>
+    <li class="text-xs ${r.severity === "high" ? "text-[#FF5F6D] dark:text-rose-400" : r.severity === "med" ? "text-[#F7C5A0] dark:text-amber-300" : "text-gray-600 dark:text-slate-300"}">• ${r.lang}: ${r.issue} (${r.severity})</li>
   `).join("") : "";
 
   el.innerHTML = `
     <div style="animation:fadeInUp 0.4s ease-out" class="space-y-4">
       <div>
         <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Positioning</p>
-        <div class="p-3 rounded-xl bg-white/5 border border-white/10 whitespace-pre-wrap text-sm text-gray-200">${(data.positioning || "").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
+        <div class="p-3 rounded-xl bg-white/60 dark:bg-white/5 border border-[#C8D5C0] dark:border-white/10 whitespace-pre-wrap text-sm text-gray-200">${(data.positioning || "").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
       </div>
       <div>
         <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Competitors</p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          ${comp || '<p class="text-xs text-slate-500">No competitors parsed.</p>'}
+          ${comp || '<p class="text-xs text-gray-500 dark:text-slate-500">No competitors parsed.</p>'}
         </div>
       </div>
       <div>
         <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Domains</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">${domains || '<p class="text-xs text-slate-500">No domain data.</p>'}</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">${domains || '<p class="text-xs text-gray-500 dark:text-slate-500">No domain data.</p>'}</div>
       </div>
       <div>
         <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Name Risk</p>
-        ${risks ? `<ul class="space-y-1">${risks}</ul>` : '<p class="text-xs text-slate-500">No risks flagged.</p>'}
+        ${risks ? `<ul class="space-y-1">${risks}</ul>` : '<p class="text-xs text-gray-500 dark:text-slate-500">No risks flagged.</p>'}
       </div>
     </div>`;
 }
@@ -306,17 +482,17 @@ function renderConsistency(containerId, data) {
   if (data.raw) { showText(containerId, data.raw, "Consistency"); return; }
   const score = data.score ?? Math.round((data.brand_alignment_score || 0) * 100);
   const verdict = data.verdict || "Result";
-  const reasons = (data.reasons || []).map(r => `<li class="text-xs text-amber-300">• ${r}</li>`).join("");
-  const fixes = (data.fixes || []).map(r => `<li class="text-xs text-emerald-300">• ${r}</li>`).join("");
+  const reasons = (data.reasons || []).map(r => `<li class="text-xs text-[#F7C5A0] dark:text-amber-300">• ${r}</li>`).join("");
+  const fixes = (data.fixes || []).map(r => `<li class="text-xs text-[#7DB5A0] dark:text-emerald-300">• ${r}</li>`).join("");
   el.innerHTML = `
     <div style="animation:fadeInUp 0.4s ease-out" class="space-y-4">
       <div class="flex items-center justify-between">
         <p class="text-xs text-gray-500 uppercase tracking-wider">Consistency Score</p>
-        <p class="text-lg font-bold text-cyan-300">${score}%</p>
+        <p class="text-lg font-bold text-[#7DB5A0] dark:text-cyan-300">${score}%</p>
       </div>
       <div>
         <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Verdict</p>
-        <p class="text-sm text-white font-semibold">${verdict}</p>
+        <p class="text-sm text-[#1A1A1A] dark:text-white font-semibold">${verdict}</p>
       </div>
       ${reasons ? `<div><p class="text-xs text-gray-500 mb-1">What feels off</p><ul class="space-y-1">${reasons}</ul></div>` : ""}
       ${fixes ? `<div><p class="text-xs text-gray-500 mb-1">Suggestions</p><ul class="space-y-1">${fixes}</ul></div>` : ""}
@@ -329,15 +505,13 @@ function renderConsistency(containerId, data) {
 // ═══════════════════════════════════════════════════════════════════
 
 async function genLogoPrompt() {
-  const brand_name     = document.getElementById("logo-name").value.trim();
-  const industry       = document.getElementById("logo-industry").value.trim();
-  const style_keywords = document.getElementById("logo-style").value.trim();
-  const description    = document.getElementById("logo-desc").value.trim();
-  const colors         = document.getElementById("logo-colors").value.trim();
-  const mood           = document.getElementById("logo-mood").value.trim();
-  const minimalism = parseInt(document.getElementById("slider-minimalism")?.value || "0", 10);
-  const complexity = parseInt(document.getElementById("slider-complexity")?.value || "0", 10);
-  const vibrancy = parseInt(document.getElementById("slider-vibrancy")?.value || "0", 10);
+  const brand_name = document.getElementById("logo-name").value.trim();
+  const industry = document.getElementById("logo-industry").value.trim();
+  const style_keywords = document.getElementById("logo-style")?.value?.trim() || "";
+  const typography = document.getElementById("logo-typography")?.value || "";
+  const icon_style = document.getElementById("logo-icon-style")?.value || "";
+  const mood = document.getElementById("logo-mood")?.value?.trim() || "";
+  const description = document.getElementById("logo-icon-concept")?.value?.trim() || "";
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
@@ -346,54 +520,43 @@ async function genLogoPrompt() {
   loading("logo-prompt-result", "Building logo prompt...");
   document.getElementById("logo-prompt-result").style.display = "block";
   try {
-    const res = await post("/api/generate-logo-prompt", { brand_name, industry, style_keywords, description, colors, mood });
-    let promptTxt = res.data || "";
-    // Dynamic Prompting adjustments based on sliders
-    if (minimalism >= 80) {
-      promptTxt += ", vector, flat design, simple lines, white background";
-    }
-    if (vibrancy >= 80) {
-      promptTxt += ", neon, high contrast, bold colors";
-    }
-    if (complexity >= 80) {
-      promptTxt += ", intricate details, ornate, complex geometry";
-    } else if (complexity <= 20) {
-      promptTxt += ", ultra minimal, few elements, monoline";
-    }
-    showText("logo-prompt-result", promptTxt, "Logo Prompt");
+    const res = await post("/api/generate-logo-prompt", {
+      brand_name, industry, style_keywords, typography, icon_style, mood, description
+    });
+    showText("logo-prompt-result", res.data || "", "Logo Prompt");
   } catch (e) {
     showErr("logo-prompt-result", e.message);
   }
 }
 
 async function genLogo() {
-  const brand_name     = document.getElementById("logo-name").value.trim();
-  const industry       = document.getElementById("logo-industry").value.trim();
-  const style_keywords = document.getElementById("logo-style").value.trim();
-  const description    = document.getElementById("logo-desc").value.trim();
-  const colors         = document.getElementById("logo-colors").value.trim();
-  const mood           = document.getElementById("logo-mood").value.trim();
-  const minimalism = parseInt(document.getElementById("slider-minimalism")?.value || "0", 10);
-  const complexity = parseInt(document.getElementById("slider-complexity")?.value || "0", 10);
-  const vibrancy = parseInt(document.getElementById("slider-vibrancy")?.value || "0", 10);
+  const brand_name = document.getElementById("logo-name").value.trim();
+  const industry = document.getElementById("logo-industry").value.trim();
+  const style_keywords = document.getElementById("logo-style")?.value?.trim() || "";
+  const typography = document.getElementById("logo-typography")?.value || "";
+  const icon_style = document.getElementById("logo-icon-style")?.value || "";
+  const mood = document.getElementById("logo-mood")?.value?.trim() || "";
+  const description = document.getElementById("logo-icon-concept")?.value?.trim() || "";
 
   if (!brand_name || !industry) {
     showErr("logo-result", "Please fill in Brand Name and Industry.");
     return;
   }
-  loading("logo-result", "Creating your logo with HuggingFace FLUX — this may take up to 30s...");
+  loading("logo-result", "Creating your logo — this may take up to 30s...");
   document.getElementById("logo-prompt-result").style.display = "none";
   try {
-    const res = await post("/api/generate-logo", { brand_name, industry, style_keywords, description, colors, mood, minimalism, complexity, vibrancy });
+    const res = await post("/api/generate-logo", {
+      brand_name, industry, style_keywords, typography, icon_style, mood, description
+    });
     const imageUrl = `${API_BASE}${res.data.image_url}`;
     document.getElementById("logo-result").innerHTML = `
       <div style="animation:scaleIn 0.5s ease-out">
-        <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">Generated Logo (FLUX · HuggingFace)</p>
-        <img src="${imageUrl}" alt="Logo for ${brand_name}" class="max-w-full max-h-72 rounded-xl border border-white/10 mx-auto block" />
+        <p class="text-[#7DB5A0] dark:text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-3">✨ Generated Logo</p>
+        <img src="${imageUrl}" alt="Logo for ${brand_name}" class="max-w-full max-h-72 rounded-xl border border-[#C8D5C0] dark:border-white/10 mx-auto block" />
         <div class="flex gap-3 mt-4 justify-center">
           <a href="${imageUrl}" download="${brand_name}_logo.png"
-            class="px-4 py-2 text-xs font-semibold rounded-full bg-violet-500/20 border border-violet-500/50
-                   text-violet-300 hover:bg-violet-500/30 transition-all">
+            class="px-4 py-2 text-xs font-semibold rounded-full bg-[#FF5F6D]/20 dark:bg-violet-500/20 border border-[#FF5F6D]/50 dark:border-violet-500/50
+                   text-[#FF5F6D] dark:text-violet-300 hover:bg-[#FF5F6D]/30 dark:bg-violet-500/30 transition-all">
             ⬇️ Download PNG
           </a>
         </div>
@@ -422,7 +585,14 @@ async function genMarketingContent() {
     const res = await post("/api/generate-marketing-content", {
       brand_description, tone, content_type, language: getLanguageName(),
     });
-    showText("mc-result", res.data, content_type);
+    // Check if user requested multiple items (Slogans, Taglines, Catchphrases, etc)
+    if (content_type.toLowerCase().includes("slogan") ||
+      content_type.toLowerCase().includes("tagline") ||
+      content_type.toLowerCase().includes("ad copy")) {
+      displayContentCards("mc-result", res.data, content_type.toUpperCase());
+    } else {
+      showText("mc-result", res.data, content_type.toUpperCase());
+    }
   } catch (e) {
     showErr("mc-result", e.message);
   }
@@ -443,7 +613,7 @@ async function genSocialPosts() {
     const res = await post("/api/generate-social-posts", {
       brand_name, product_description, platform, tone, language: getLanguageName(),
     });
-    showText("sp-result", res.data, `${platform} Social Posts`);
+    displayContentCards("sp-result", res.data, `${platform.toUpperCase()} SOCIAL POSTS`);
   } catch (e) {
     showErr("sp-result", e.message);
   }
@@ -556,12 +726,12 @@ function renderColorPalette(containerId, data) {
 
     return `
       <div class="relative group" style="transform: rotate(${rotation}deg) translateX(${translateX}px); margin-bottom: 20px;">
-        <div class="w-24 h-36 rounded-xl border border-white/20 shadow-2xl transition-all duration-300 group-hover:-translate-y-4 group-hover:rotate-0 flex flex-col overflow-hidden glass-bright"
+        <div class="w-24 h-36 rounded-xl border border-[#C8D5C0] dark:border-white/20 shadow-2xl transition-all duration-300 group-hover:-translate-y-4 group-hover:rotate-0 flex flex-col overflow-hidden glass-bright"
              style="background: ${c.hex}; cursor: pointer;"
              onclick="copyText(this, '${c.hex}')">
           <div class="flex-1"></div>
-          <div class="bg-black/40 backdrop-blur-md p-2 text-center">
-            <p class="text-[10px] font-black text-white leading-none">${c.hex}</p>
+          <div class="bg-white/60 dark:bg-black/40 backdrop-blur-md p-2 text-center">
+            <p class="text-[10px] font-black text-[#1A1A1A] dark:text-white leading-none">${c.hex}</p>
             <p class="text-[8px] text-white/70 uppercase tracking-tighter mt-1 truncate">${c.name}</p>
           </div>
         </div>
@@ -570,18 +740,18 @@ function renderColorPalette(containerId, data) {
 
   el.innerHTML = `
     <div style="animation:fadeInUp 0.4s ease-out" class="py-8 overflow-hidden">
-      <p class="text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-8 text-center">Brand Color Palette</p>
+      <p class="text-[#7DB5A0] dark:text-cyan-400 font-semibold text-xs uppercase tracking-wider mb-8 text-center">Brand Color Palette</p>
       <div class="flex justify-center items-center h-48 -space-x-12 px-10">
         ${swatches}
       </div>
       ${data.rationale ? `
-        <div class="mt-12 p-4 rounded-2xl bg-white/5 border border-white/10 mx-auto max-w-lg">
-          <p class="text-xs text-gray-300 leading-relaxed text-center italic">"${data.rationale}"</p>
+        <div class="mt-12 p-4 rounded-2xl bg-white/60 dark:bg-white/5 border border-[#C8D5C0] dark:border-white/10 mx-auto max-w-lg">
+          <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed text-center italic">"${data.rationale}"</p>
         </div>` : ""}
       <div class="flex justify-center mt-6">
         <button onclick='copyText(this, ${JSON.stringify(JSON.stringify(data))})'
-          class="px-5 py-2 text-xs font-bold rounded-full bg-violet-500/10 border border-violet-500/40
-                 text-violet-300 hover:bg-violet-500/20 transition-all">
+          class="px-5 py-2 text-xs font-bold rounded-full bg-[#FF5F6D]/10 dark:bg-violet-500/10 border border-[#FF5F6D]/40 dark:border-violet-500/40
+                 text-[#FF5F6D] dark:text-violet-300 hover:bg-[#FF5F6D]/20 dark:bg-violet-500/20 transition-all">
           📋 Export Palette JSON
         </button>
       </div>
@@ -645,20 +815,20 @@ function renderSentiment(containerId, data) {
   }
 
   const sentimentColor = {
-    Positive: "text-emerald-400",
+    Positive: "text-[#7DB5A0] dark:text-emerald-400",
     Negative: "text-red-400",
-    Neutral: "text-yellow-400",
+    Neutral: "text-[#F7C5A0] dark:text-yellow-400",
   }[data.overall_sentiment] || "text-gray-400";
 
   const scoreBar = (score) => {
     const pct = Math.round((score || 0) * 100);
     return `
       <div class="flex items-center gap-3">
-        <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+        <div class="flex-1 h-2 bg-white/60 dark:bg-white/10 rounded-full overflow-hidden">
           <div class="h-full rounded-full transition-all duration-700"
                style="width:${pct}%;background:linear-gradient(90deg,#7c3aed,#06b6d4)"></div>
         </div>
-        <span class="text-xs font-bold text-cyan-300 w-8 text-right">${pct}%</span>
+        <span class="text-xs font-bold text-[#7DB5A0] dark:text-cyan-300 w-8 text-right">${pct}%</span>
       </div>`;
   };
 
@@ -685,25 +855,25 @@ function renderSentiment(containerId, data) {
         <div>
           <p class="text-xs text-gray-500 mb-2">Detected Emotions</p>
           <div class="flex flex-wrap gap-2">
-            ${data.emotions.map(e => `<span class="px-3 py-1 text-xs rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-300">${e}</span>`).join("")}
+            ${data.emotions.map(e => `<span class="px-3 py-1 text-xs rounded-full bg-[#FF5F6D]/20 dark:bg-violet-500/20 border border-[#FF5F6D]/30 dark:border-violet-500/30 text-[#FF5F6D] dark:text-violet-300">${e}</span>`).join("")}
           </div>
         </div>` : ""}
 
       ${data.strengths ? `
         <div>
           <p class="text-xs text-gray-500 mb-2">✅ Strengths</p>
-          <ul class="space-y-1">${data.strengths.map(s => `<li class="text-xs text-emerald-300">• ${s}</li>`).join("")}</ul>
+          <ul class="space-y-1">${data.strengths.map(s => `<li class="text-xs text-[#7DB5A0] dark:text-emerald-300">• ${s}</li>`).join("")}</ul>
         </div>` : ""}
 
       ${data.improvements ? `
         <div>
           <p class="text-xs text-gray-500 mb-2">💡 Improvements</p>
-          <ul class="space-y-1">${data.improvements.map(i => `<li class="text-xs text-amber-300">• ${i}</li>`).join("")}</ul>
+          <ul class="space-y-1">${data.improvements.map(i => `<li class="text-xs text-[#F7C5A0] dark:text-amber-300">• ${i}</li>`).join("")}</ul>
         </div>` : ""}
 
       ${data.recommendation ? `
-        <div class="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
-          <p class="text-xs text-cyan-300 leading-relaxed">💬 ${data.recommendation}</p>
+        <div class="p-3 rounded-xl bg-[#7DB5A0]/10 dark:bg-cyan-500/10 border border-[#7DB5A0]/20 dark:border-cyan-500/20">
+          <p class="text-xs text-[#7DB5A0] dark:text-cyan-300 leading-relaxed">💬 ${data.recommendation}</p>
         </div>` : ""}
     </div>`;
 }
@@ -781,13 +951,13 @@ function appendChatBubble(role, text) {
         <div class="chat-bubble-user">
           <p>${escaped}</p>
         </div>
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-violet-500
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#7DB5A0] dark:from-cyan-400 to-[#FF5F6D] dark:to-violet-500
                     flex items-center justify-center text-sm flex-shrink-0">You</div>
       </div>`;
   } else if (role === "ai") {
     html = `
       <div class="flex gap-3" style="animation:fadeInUp 0.3s ease-out">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF5F6D] dark:from-violet-600 to-[#F4A0A0] dark:to-cyan-400
                     flex items-center justify-center text-sm flex-shrink-0">🤖</div>
         <div class="chat-bubble-ai">
           <p class="whitespace-pre-wrap leading-relaxed">${escaped}</p>
@@ -796,7 +966,7 @@ function appendChatBubble(role, text) {
   } else {
     html = `
       <div class="flex gap-3" style="animation:fadeInUp 0.3s ease-out">
-        <div class="w-8 h-8 rounded-full bg-red-500/30 flex items-center justify-center text-sm flex-shrink-0">⚠️</div>
+        <div class="w-8 h-8 rounded-full bg-[#FF5F6D]/30 dark:bg-red-500/30 flex items-center justify-center text-sm flex-shrink-0">⚠️</div>
         <div class="chat-bubble-ai border-red-500/30">
           <p class="text-red-400 text-sm">${escaped}</p>
         </div>
@@ -816,7 +986,7 @@ function appendTypingIndicator() {
 
   const html = `
     <div id="${id}" class="flex gap-3">
-      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF5F6D] dark:from-violet-600 to-[#F4A0A0] dark:to-cyan-400
                   flex items-center justify-center text-sm flex-shrink-0">🤖</div>
       <div class="chat-bubble-ai">
         <div class="flex gap-1 items-center py-1">
@@ -875,7 +1045,7 @@ async function clearChat() {
   if (container) {
     container.innerHTML = `
       <div class="flex gap-3">
-        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500
+        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF5F6D] dark:from-violet-600 to-[#F4A0A0] dark:to-cyan-400
                     flex items-center justify-center text-sm flex-shrink-0">🤖</div>
         <div class="chat-bubble-ai">
           <p>Conversation cleared! How can I help with your branding today? 🚀</p>
@@ -963,3 +1133,44 @@ async function startVoice(targetInputId) {
     alert("Microphone access denied: " + err.message);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// SIDEBAR RESIZER
+// ═══════════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const resizer = document.getElementById("sidebar-resizer");
+  if (!sidebar || !resizer) return;
+
+  let isResizing = false;
+
+  resizer.addEventListener("mousedown", (e) => {
+    isResizing = true;
+    document.body.style.cursor = "col-resize";
+    resizer.classList.add("is-resizing");
+    // Prevent text selection while dragging
+    e.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isResizing) return;
+
+    // Calculate new width based on mouse X position
+    let newWidth = e.clientX;
+
+    // Constraints
+    if (newWidth < 250) newWidth = 250;
+    if (newWidth > 600) newWidth = 600;
+
+    sidebar.style.width = newWidth + "px";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.cursor = "default";
+      resizer.classList.remove("is-resizing");
+    }
+  });
+});
+

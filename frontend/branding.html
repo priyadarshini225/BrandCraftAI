@@ -26,6 +26,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="css/animations.css" />
 
   <style>
@@ -235,11 +236,11 @@
       color: #fff;
     }
 
-    /* Dark inputs */
+    /* Inputs */
     .dark-input {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #f1f5f9;
+      background-color: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(125, 181, 160, 0.8);
+      color: #1A1A1A;
       border-radius: 12px;
       padding: 11px 14px;
       width: 100%;
@@ -251,17 +252,33 @@
     }
 
     .dark-input:focus {
-      border-color: rgba(139, 92, 246, 0.6);
-      background: rgba(139, 92, 246, 0.08);
-      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+      border-color: #FF5F6D;
+      background-color: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 0 0 3px rgba(255, 95, 109, 0.2);
     }
 
     .dark-input::placeholder {
+      color: rgba(26, 26, 26, 0.50);
+    }
+
+    html.dark .dark-input {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+    }
+
+    html.dark .dark-input:focus {
+      border-color: rgba(139, 92, 246, 0.6);
+      background-color: rgba(139, 92, 246, 0.08);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+    }
+
+    html.dark .dark-input::placeholder {
       color: rgba(255, 255, 255, 0.30);
     }
 
     select.dark-input {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a78bfa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231A1A1A' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 14px center;
       padding-right: 38px;
@@ -270,7 +287,16 @@
       appearance: none;
     }
 
+    html.dark select.dark-input {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f1f5f9' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    }
+
     .dark-input option {
+      background: #ffffff;
+      color: #1A1A1A;
+    }
+
+    html.dark .dark-input option {
       background: #0f0f2e;
       color: #f8fafc;
     }
@@ -281,7 +307,7 @@
       border-radius: 10px;
       font-size: 12px;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(26, 26, 26, 0.6);
       transition: all 0.25s ease;
       white-space: nowrap;
       border: 1px solid transparent;
@@ -290,11 +316,27 @@
     }
 
     .tab-btn:hover {
+      color: #1A1A1A;
+      background: rgba(125, 181, 160, 0.15);
+    }
+
+    .tab-btn.active {
+      color: #FF5F6D;
+      background: rgba(255, 95, 109, 0.12);
+      border-color: rgba(255, 95, 109, 0.4);
+      box-shadow: 0 0 18px rgba(255, 95, 109, 0.15);
+    }
+
+    html.dark .tab-btn {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    html.dark .tab-btn:hover {
       color: rgba(255, 255, 255, 0.80);
       background: rgba(255, 255, 255, 0.06);
     }
 
-    .tab-btn.active {
+    html.dark .tab-btn.active {
       color: #fff;
       background: rgba(139, 92, 246, 0.18);
       border-color: rgba(139, 92, 246, 0.45);
@@ -316,22 +358,40 @@
       border-radius: 8px;
       font-size: 11px;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.10);
+      color: rgba(26, 26, 26, 0.6);
+      border: 1px solid rgba(125, 181, 160, 0.3);
+
       cursor: pointer;
       transition: all 0.2s ease;
       background: transparent;
     }
 
     .sub-tab-btn:hover {
+      color: #1A1A1A;
+      background: rgba(125, 181, 160, 0.15);
+    }
+
+    .sub-tab-btn.active {
+      color: #FF5F6D;
+      background: rgba(255, 95, 109, 0.12);
+      border-color: rgba(255, 95, 109, 0.40);
+      box-shadow: 0 0 18px rgba(255, 95, 109, 0.15);
+    }
+
+    html.dark .sub-tab-btn {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    html.dark .sub-tab-btn:hover {
       color: rgba(255, 255, 255, 0.75);
       background: rgba(255, 255, 255, 0.06);
     }
 
-    .sub-tab-btn.active {
+    html.dark .sub-tab-btn.active {
       color: #fff;
       background: rgba(6, 182, 212, 0.18);
       border-color: rgba(6, 182, 212, 0.40);
+      box-shadow: 0 0 18px rgba(6, 182, 212, 0.18);
     }
 
     .sub-tab-content {
@@ -347,11 +407,16 @@
     .result-area {
       min-height: 120px;
       border-radius: 14px;
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(125, 181, 160, 0.3);
       padding: 18px;
       margin-top: 14px;
       backdrop-filter: blur(4px);
+    }
+
+    html.dark .result-area {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     /* Label */
@@ -359,10 +424,14 @@
       display: block;
       font-size: 11px;
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.50);
+      color: rgba(26, 26, 26, 0.60);
       text-transform: uppercase;
       letter-spacing: 0.07em;
       margin-bottom: 6px;
+    }
+
+    html.dark label {
+      color: rgba(255, 255, 255, 0.50);
     }
 
     /* Chat */
@@ -458,17 +527,34 @@
       cursor: pointer;
       border-radius: 16px;
       padding: 14px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(125, 181, 160, 0.3);
+      transition: all 0.25s ease;
+      color: #1A1A1A;
+    }
+
+    html.dark .brand-result-card {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.09);
-      transition: all 0.25s ease;
+      color: #f1f5f9;
     }
 
     .brand-result-card:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(255, 95, 109, 0.35);
+    }
+
+    html.dark .brand-result-card:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(139, 92, 246, 0.35);
     }
 
     .brand-result-card.selected {
+      background: rgba(255, 95, 109, 0.12);
+      border-color: rgba(255, 95, 109, 0.5);
+    }
+
+    html.dark .brand-result-card.selected {
       background: rgba(139, 92, 246, 0.12);
       border-color: rgba(139, 92, 246, 0.5);
     }
@@ -527,6 +613,51 @@
     #main-panel {
       flex: 1;
       overflow-y: auto;
+    }
+
+    /* Markdown Styling */
+    .markdown-prose p {
+      margin-bottom: 12px;
+    }
+
+    .markdown-prose h1,
+    .markdown-prose h2,
+    .markdown-prose h3 {
+      font-weight: 700;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      color: #FF5F6D;
+    }
+
+    html.dark .markdown-prose h1,
+    html.dark .markdown-prose h2,
+    html.dark .markdown-prose h3 {
+      color: #c4b5fd;
+    }
+
+    .markdown-prose ul {
+      list-style-type: disc;
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .markdown-prose ol {
+      list-style-type: decimal;
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .markdown-prose li {
+      margin-bottom: 6px;
+    }
+
+    .markdown-prose strong {
+      font-weight: 700;
+      color: #1A1A1A;
+    }
+
+    html.dark .markdown-prose strong {
+      color: #fff;
     }
 
     @media (max-width: 768px) {
@@ -689,6 +820,247 @@
       margin-bottom: 12px;
       opacity: 0.5;
     }
+
+    /* Liquid Glass Light Mode (Default) */
+    body {
+      background: #F9F9F9;
+      color: #1A1A1A;
+    }
+
+    .mesh-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 0% 0%, rgba(247, 197, 160, 0.50) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 100% 20%, rgba(244, 160, 160, 0.40) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 40% 90%, rgba(200, 213, 192, 0.40) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 40% at 80% 70%, rgba(125, 181, 160, 0.25) 0%, transparent 50%);
+      background-color: #F9F9F9;
+    }
+
+    .grid-lines {
+      background-image:
+        linear-gradient(rgba(125, 181, 160, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(125, 181, 160, 0.15) 1px, transparent 1px);
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(125, 181, 160, 0.3);
+      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.5), 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .glass-bright {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(125, 181, 160, 0.4);
+      box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.8), 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(125, 181, 160, 0.3);
+    }
+
+    .btn-glow {
+      background: linear-gradient(135deg, #FF5F6D 0%, #F4A0A0 60%, #F7C5A0 100%);
+      box-shadow: 0 4px 15px rgba(255, 95, 109, 0.3);
+    }
+
+    .btn-glow::before {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), transparent);
+    }
+
+    .btn-glow:hover {
+      box-shadow: 0 10px 25px rgba(255, 95, 109, 0.5);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(125, 181, 160, 0.5);
+      color: #1A1A1A;
+    }
+
+    .btn-outline:hover {
+      background: rgba(244, 160, 160, 0.2);
+      border-color: #FF5F6D;
+      color: #FF5F6D;
+    }
+
+    .grad {
+      background: linear-gradient(135deg, #FF5F6D 0%, #F4A0A0 50%, #F7C5A0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .feat-card:hover {
+      background: rgba(255, 255, 255, 0.8) !important;
+      border-color: rgba(255, 95, 109, 0.45) !important;
+      box-shadow: 0 24px 64px rgba(244, 160, 160, 0.2), 0 0 0 1px rgba(255, 95, 109, 0.2);
+    }
+
+    .browser-frame {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(125, 181, 160, 0.3);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+    }
+
+    .browser-bar {
+      background: rgba(255, 255, 255, 0.4);
+      border-bottom: 1px solid rgba(125, 181, 160, 0.2);
+    }
+
+    .hero-glow {
+      background: radial-gradient(circle, rgba(255, 95, 109, 0.15) 0%, transparent 65%);
+    }
+
+    .badge-dot {
+      background: #FF5F6D;
+      box-shadow: 0 0 8px rgba(255, 95, 109, 0.8);
+    }
+
+    #typed-text::after {
+      color: #FF5F6D;
+    }
+
+    .icon-box {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(125, 181, 160, 0.3);
+    }
+
+    /* Dark Mode Overrides */
+    html.dark body {
+      background: #060614;
+      color: #f1f5f9;
+    }
+
+    html.dark .mesh-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 0% 0%, rgba(124, 58, 237, 0.20) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 100% 20%, rgba(6, 182, 212, 0.14) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 40% 90%, rgba(236, 72, 153, 0.11) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 40% at 80% 70%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+      background-color: #060614;
+    }
+
+    html.dark .grid-lines {
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    }
+
+    html.dark .glass {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: none;
+    }
+
+    html.dark .glass-bright {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      box-shadow: none;
+    }
+
+    html.dark .glass-card {
+      background: rgba(255, 255, 255, 0.045);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow: none;
+    }
+
+    html.dark .btn-glow {
+      background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 60%, #ec4899 100%);
+      box-shadow: none;
+    }
+
+    html.dark .btn-glow::before {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+    }
+
+    html.dark .btn-glow:hover {
+      box-shadow: 0 20px 60px rgba(124, 58, 237, 0.55);
+    }
+
+    html.dark .btn-outline {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
+    }
+
+    html.dark .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(139, 92, 246, 0.5);
+      color: #fff;
+    }
+
+    html.dark .grad {
+      background: linear-gradient(135deg, #a78bfa 0%, #67e8f9 50%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    html.dark .feat-card:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(6, 182, 212, 0.45) !important;
+      box-shadow: 0 24px 64px rgba(6, 182, 212, 0.12), 0 0 0 1px rgba(6, 182, 212, 0.2);
+    }
+
+    html.dark .browser-frame {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow: none;
+    }
+
+    html.dark .browser-bar {
+      background: rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    html.dark .hero-glow {
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.13) 0%, transparent 65%);
+    }
+
+    html.dark .badge-dot {
+      background: #a78bfa;
+      box-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
+    }
+
+    html.dark #typed-text::after {
+      color: #a78bfa;
+    }
+
+    html.dark .icon-box {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    html.dark .tab-btn.active {
+      color: #a78bfa;
+      background: rgba(167, 139, 250, 0.1);
+      border-color: rgba(167, 139, 250, 0.3);
+      box-shadow: 0 0 15px rgba(167, 139, 250, 0.1);
+    }
+
+    #sidebar-resizer {
+      width: 5px;
+      cursor: col-resize;
+      background: rgba(0, 0, 0, 0.04);
+      flex-shrink: 0;
+      z-index: 50;
+      transition: background 0.2s ease;
+    }
+
+    #sidebar-resizer:hover,
+    #sidebar-resizer.is-resizing {
+      background: rgba(125, 181, 160, 0.5);
+    }
+
+    html.dark #sidebar-resizer {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    html.dark #sidebar-resizer:hover,
+    html.dark #sidebar-resizer.is-resizing {
+      background: rgba(139, 92, 246, 0.4);
+    }
   </style>
 </head>
 
@@ -704,8 +1076,8 @@
   <div class="slide-panel" id="panel-projects">
     <div class="panel-header">
       <div>
-        <h2 class="text-lg font-black text-white">📁 Projects</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Save &amp; reload your branding sessions</p>
+        <h2 class="text-lg font-black text-[#1A1A1A] dark:text-white">📁 Projects</h2>
+        <p class="text-xs text-gray-500 dark:text-slate-500 mt-0.5">Save &amp; reload your branding sessions</p>
       </div>
       <button class="panel-close" onclick="closePanel()">✕</button>
     </div>
@@ -722,42 +1094,51 @@
   </div>
 
   <!-- ═══ NAVBAR ═══ -->
-  <nav class="relative z-50 glass border-b border-white/10 flex-shrink-0">
+  <nav class="relative z-50 glass border-b border-[#C8D5C0] dark:border-white/10 flex-shrink-0">
     <div class="px-6 py-3.5 flex items-center justify-between">
       <a href="index.html" class="flex items-center gap-2.5 group">
         <div
-          class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-gradient-to-br from-violet-600 to-cyan-500 shadow-lg shadow-violet-500/30">
+          class="w-8 h-8 rounded-xl flex items-center justify-center text-base bg-gradient-to-br from-[#FF5F6D] dark:from-violet-600 to-[#F4A0A0] dark:to-cyan-400 shadow-lg shadow-[#FF5F6D]/30 dark:shadow-violet-500/30">
           🚀</div>
-        <span class="text-lg font-black font-display"><span class="text-white">BrandCraft</span><span class="grad">
+        <span class="text-lg font-black font-display"><span
+            class="text-[#1A1A1A] dark:text-white">BrandCraft</span><span class="grad">
             AI</span></span>
       </a>
 
       <div class="hidden md:flex items-center gap-1">
         <a href="index.html"
-          class="px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/6 transition-all text-sm font-medium flex items-center gap-1.5">
+          class="px-4 py-2 rounded-lg text-gray-600 dark:text-slate-400 hover:text-[#1A1A1A] dark:text-white hover:bg-white/60 dark:bg-white/6 transition-all text-sm font-medium flex items-center gap-1.5">
           <span class="text-xs">⊞</span> Dashboard
         </a>
         <span
-          class="px-4 py-2 rounded-lg text-white bg-white/8 text-sm font-semibold border border-violet-500/30 flex items-center gap-1.5">
+          class="px-4 py-2 rounded-lg text-[#1A1A1A] dark:text-white bg-white/60 dark:bg-white/8 text-sm font-semibold border border-[#FF5F6D]/30 dark:border-violet-500/30 flex items-center gap-1.5">
           <span class="text-xs">✦</span> AI Studio
         </span>
-        <a href="#analysis:market"
-          class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-cyan-500/20 border border-cyan-500/30 transition-all text-xs font-semibold">
-          Market
-        </a>
-        <a href="#analysis:consistency"
-          class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-emerald-500/20 border border-emerald-500/30 transition-all text-xs font-semibold">
-          Consistency
-        </a>
-        <button onclick="openPanel('projects')"
-          class="px-4 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/6 transition-all text-sm font-medium flex items-center gap-1.5">
-          <span class="text-xs">📁</span> Projects
-        </button>
+
+
       </div>
 
       <div class="flex items-center gap-3">
+
+        <button id="theme-toggle"
+          class="bg-white/60 dark:bg-white/5 border border-[#C8D5C0] dark:border-white/20 w-9 h-9 rounded-full flex items-center justify-center text-[#1A1A1A] dark:text-white hover:bg-white/80 dark:hover:bg-white/10 transition-all mr-2">
+          <!-- Moon icon (shows in light mode) -->
+          <svg id="theme-icon-dark" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+            </path>
+          </svg>
+          <!-- Sun icon (shows in dark mode) -->
+          <svg id="theme-icon-light" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+
         <select id="lang-selector"
-          class="border border-white/18 text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-violet-400 cursor-pointer">
+          class="border border-[#C8D5C0] dark:border-white/18 text-[#1A1A1A] dark:text-white text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#FF5F6D] dark:focus:border-violet-400 cursor-pointer">
           <option value="en">🌐 EN</option>
           <option value="es">🇪🇸 ES</option>
           <option value="fr">🇫🇷 FR</option>
@@ -774,8 +1155,10 @@
     <!-- ── LEFT SIDEBAR: Brand Parameters ── -->
     <aside id="sidebar" class="p-5 space-y-5">
       <div>
-        <h2 class="text-xl font-black font-display text-white mb-1" data-i18n="studio_title">Brand Parameters</h2>
-        <p class="text-slate-500 text-xs leading-relaxed" data-i18n="studio_subtitle">Define the core essence of your
+        <h2 class="text-xl font-black font-display text-[#1A1A1A] dark:text-white mb-1" data-i18n="studio_title">Brand
+          Parameters</h2>
+        <p class="text-gray-500 dark:text-slate-500 text-xs leading-relaxed" data-i18n="studio_subtitle">Define the core
+          essence of your
           vision. Our AI will synthesize your brand identity in real-time.</p>
       </div>
 
@@ -810,8 +1193,9 @@
           <label for="bn-keywords">Keywords / Themes</label>
           <div class="relative">
             <input id="bn-keywords" class="dark-input" placeholder="e.g. health, wellness, community" />
-            <button onclick="startVoice('bn-keywords')" title="Voice Input" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-violet-500/20 border border-violet-500/35
-                     flex items-center justify-center text-sm hover:bg-violet-500/35 transition-all">🎤</button>
+            <!-- <button onclick="startVoice('bn-keywords')" title="Voice Input"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-[#FF5F6D]/20 dark:bg-violet-500/20 border border-[#FF5F6D]/35 dark:border-violet-500/35
+                     flex items-center justify-center text-sm hover:bg-[#FF5F6D]/35 dark:bg-violet-500/35 transition-all">🎤</button> -->
           </div>
         </div>
         <div>
@@ -829,7 +1213,7 @@
 
         <div class="pt-2 space-y-3">
           <button onclick="genBrandNames()"
-            class="btn-glow w-full text-white font-bold text-sm py-3.5 rounded-2xl flex items-center justify-center gap-2">
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3.5 rounded-2xl flex items-center justify-center gap-2">
             <span class="text-base">🔄</span> <span data-i18n="gen_brand_names">Generate Brand Names</span>
           </button>
         </div>
@@ -841,40 +1225,60 @@
             placeholder="e.g. NovaPulse" /></div>
         <div><label for="logo-industry">Industry</label><input id="logo-industry" class="dark-input"
             placeholder="e.g. FinTech, Healthcare" /></div>
-        <div><label for="logo-style">Visual Style</label><input id="logo-style" class="dark-input"
-            placeholder="e.g. minimalist, geometric, flat, vintage" /></div>
-        <div><label for="logo-colors">Color Palette</label><input id="logo-colors" class="dark-input"
-            placeholder="e.g. electric blue and white, black and gold" /></div>
-        <div><label for="logo-mood">Mood / Feeling</label><input id="logo-mood" class="dark-input"
-            placeholder="e.g. energetic, modern, trustworthy" /></div>
+
+        <div><label for="logo-style">Visual Style Keywords</label><input id="logo-style" class="dark-input"
+            placeholder="e.g. minimalist, geometric, bold, flat vector" /></div>
+
         <div>
-          <label for="logo-desc">Icon / Symbol Concept (Optional)</label>
-          <textarea id="logo-desc" class="dark-input" rows="2"
-            placeholder="e.g. A lightning bolt integrated into a bicycle wheel..."></textarea>
+          <label for="logo-typography">Typography Style</label>
+          <select id="logo-typography" class="dark-input">
+            <option value="">Auto / Any</option>
+            <option value="geometric sans-serif">Geometric Sans-Serif (Futura-style)</option>
+            <option value="humanist sans-serif">Humanist Sans-Serif (clean, modern)</option>
+            <option value="condensed bold sans-serif">Condensed Bold Sans-Serif</option>
+            <option value="elegant serif">Elegant Serif (luxury feel)</option>
+            <option value="slab serif">Slab Serif (strong, trustworthy)</option>
+            <option value="monospace">Monospace (tech / developer)</option>
+            <option value="rounded sans-serif">Rounded Sans-Serif (friendly)</option>
+          </select>
         </div>
-        <div class="grid grid-cols-1 gap-3">
-          <div>
-            <label for="slider-minimalism">Minimalism</label>
-            <input id="slider-minimalism" type="range" min="0" max="100" value="60"
-                   class="w-full accent-violet-500" />
-          </div>
-          <div>
-            <label for="slider-complexity">Complexity</label>
-            <input id="slider-complexity" type="range" min="0" max="100" value="40"
-                   class="w-full accent-cyan-500" />
-          </div>
-          <div>
-            <label for="slider-vibrancy">Vibrancy</label>
-            <input id="slider-vibrancy" type="range" min="0" max="100" value="50"
-                   class="w-full accent-pink-500" />
-          </div>
-          <p class="text-[11px] text-slate-500">Adjust sliders to fine-tune the generated logo style.</p>
+
+        <div>
+          <label for="logo-icon-style">Icon Style</label>
+          <select id="logo-icon-style" class="dark-input">
+            <option value="">Auto / Any</option>
+            <option value="flat vector, no gradients">Flat Vector (clean, no gradients)</option>
+            <option value="outlined thin lines">Outlined / Thin Lines</option>
+            <option value="filled solid geometric">Filled Solid Geometric</option>
+            <option value="badge / emblem style">Badge / Emblem</option>
+            <option value="lettermark monogram">Lettermark / Monogram</option>
+            <option value="abstract mark">Abstract Mark</option>
+            <option value="pictorial mark">Pictorial / Literal Mark</option>
+          </select>
         </div>
-        <p class="text-xs text-amber-400/80 flex items-center gap-1.5"><span>⏱</span> Logo generation takes ~15–30s via HuggingFace FLUX.</p>
+
+        <div>
+          <label for="logo-mood">Mood / Feeling</label>
+          <input id="logo-mood" class="dark-input"
+            placeholder="e.g. clinical precision, AI-forward, warm & trustworthy" />
+        </div>
+
+        <div>
+          <label for="logo-icon-concept">Icon / Symbol Concept <span
+              class="text-gray-400 dark:text-slate-500 font-normal text-[10px]">(optional)</span></label>
+          <input id="logo-icon-concept" class="dark-input"
+            placeholder="e.g. hexagonal shield with ECG line, DNA helix, abstract leaf..." />
+        </div>
+        <p class="text-[10px] text-gray-500 dark:text-slate-600 leading-relaxed">
+          ✨ Generates a <strong>pure visual icon</strong> — no text or letters, just like Apple, Nike, or X logos.
+        </p>
+
         <div class="pt-2 flex gap-2">
           <button onclick="genLogoPrompt()"
-            class="flex-1 btn-outline text-white font-semibold text-xs px-4 py-3 rounded-2xl">📝 Preview Prompt</button>
-          <button onclick="genLogo()" class="flex-1 btn-glow text-white font-bold text-xs py-3 rounded-2xl"><span
+            class="flex-1 btn-outline text-[#1A1A1A] dark:text-white font-semibold text-xs px-4 py-3 rounded-2xl">📝
+            Preview Prompt</button>
+          <button onclick="genLogo()"
+            class="flex-1 btn-glow text-[#1A1A1A] dark:text-white font-bold text-xs py-3 rounded-2xl"><span
               data-i18n="gen_logo">🎨 Generate</span></button>
         </div>
       </div>
@@ -882,7 +1286,8 @@
       <!-- ── TAB: Content (sidebar form) ── -->
       <div id="tabpanel-content" class="tab-content space-y-4">
         <div class="flex flex-wrap gap-1.5 mb-3">
-          <button class="sub-tab-btn active" onclick="switchSubTab('content','marketing',this)">📢 Copy</button>
+          <button class="sub-tab-btn active" onclick="switchSubTab('content','marketing',this)">📢
+            Marketing</button>
           <button class="sub-tab-btn" onclick="switchSubTab('content','social',this)">📱 Social</button>
           <button class="sub-tab-btn" onclick="switchSubTab('content','product',this)">🛒 Product</button>
           <button class="sub-tab-btn" onclick="switchSubTab('content','email',this)">📧 Email</button>
@@ -894,6 +1299,7 @@
               placeholder="Describe your brand..."></textarea></div>
           <div><label for="mc-type">Content Type</label>
             <select id="mc-type" class="dark-input">
+              <option>Generate Slogans</option>
               <option>Taglines (10 options)</option>
               <option>Ad Copy</option>
               <option>Press Release</option>
@@ -910,7 +1316,8 @@
             </select>
           </div>
           <button onclick="genMarketingContent()"
-            class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl"><span data-i18n="gen_content">Generate
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl"><span
+              data-i18n="gen_content">Generate
               Content</span></button>
         </div>
 
@@ -936,8 +1343,9 @@
               <option>Inspirational</option>
             </select>
           </div>
-          <button onclick="genSocialPosts()" class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl"><span
-              data-i18n="gen_posts">Generate Posts</span></button>
+          <button onclick="genSocialPosts()"
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl"><span
+              data-i18n="gen_posts">Generate Content</span></button>
         </div>
 
         <div id="content-product" class="sub-tab-content space-y-3">
@@ -955,7 +1363,8 @@
               <option>Casual</option>
             </select>
           </div>
-          <button onclick="genProductDesc()" class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl"><span
+          <button onclick="genProductDesc()"
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl"><span
               data-i18n="gen_desc">Generate Description</span></button>
         </div>
 
@@ -975,7 +1384,8 @@
             </select>
           </div>
           <button onclick="genEmailCampaign()"
-            class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Generate Email Sequence</button>
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl">Generate Email
+            Sequence</button>
         </div>
 
         <div id="content-story" class="sub-tab-content space-y-3">
@@ -994,9 +1404,10 @@
             </select>
           </div>
           <button onclick="genBrandStory()"
-            class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Generate Brand Story</button>
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl">Generate Brand
+            Story</button>
         </div>
-        
+
       </div>
 
       <!-- ── TAB: Design (sidebar form) ── -->
@@ -1013,16 +1424,19 @@
             <option>Tech &amp; Futuristic</option>
           </select>
         </div>
-        <button onclick="genColorPalette()" class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">🎨
+        <button onclick="genColorPalette()"
+          class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl">🎨
           Generate Color Palette</button>
-        <div class="pt-3 border-t border-white/10 space-y-3">
-          <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Brand Guidelines</p>
+        <div class="pt-3 border-t border-[#C8D5C0] dark:border-white/10 space-y-3">
+          <p class="text-gray-500 dark:text-slate-500 text-xs font-bold uppercase tracking-wider">Brand Guidelines</p>
           <div><label for="dg-brand">Brand Name</label><input id="dg-brand" class="dark-input"
               placeholder="e.g. NovaPulse" /></div>
           <div><label for="dg-mission">Mission Statement</label><input id="dg-mission" class="dark-input"
               placeholder="e.g. Empowering Audio Freedom" /></div>
           <button onclick="genBrandGuidelines()"
-            class="btn-outline w-full text-white font-semibold text-xs py-3 rounded-2xl">📋 Generate Brand
+            class="btn-outline w-full text-[#1A1A1A] dark:text-white font-semibold text-xs py-3 rounded-2xl">📋
+            Generate
+            Brand
             Guidelines</button>
         </div>
       </div>
@@ -1048,7 +1462,8 @@
               <option>Tech-Forward</option>
             </select>
           </div>
-          <button onclick="genSentiment()" class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Analyse
+          <button onclick="genSentiment()"
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl">Analyse
             Sentiment</button>
         </div>
         <div id="analysis-competitor" class="sub-tab-content space-y-3">
@@ -1059,16 +1474,19 @@
           <div><label for="ca-market">Target Market</label><input id="ca-market" class="dark-input"
               placeholder="e.g. Gen Z audiophiles" /></div>
           <button onclick="genCompetitor()"
-            class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Analyse Competitors</button>
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl">Analyse
+            Competitors</button>
         </div>
         <div id="analysis-market" class="sub-tab-content space-y-3">
           <div><label for="mk-brand">Brand Name</label><input id="mk-brand" class="dark-input"
               placeholder="e.g. NovaPulse" /></div>
-          <div><label for="mk-urls">Competitor URLs (comma separated)</label><textarea id="mk-urls" class="dark-input" rows="2"
-              placeholder="https://a.com, https://b.com"></textarea></div>
+          <div><label for="mk-urls">Competitor URLs (comma separated)</label><textarea id="mk-urls" class="dark-input"
+              rows="2" placeholder="https://a.com, https://b.com"></textarea></div>
           <div><label for="mk-tlds">TLDs (optional)</label><input id="mk-tlds" class="dark-input"
               placeholder=".com, .ai, .co" /></div>
-          <button onclick="genMarketCheck()" class="btn-glow w-full text-white font-bold text-sm py-3 rounded-2xl">Run Market Check</button>
+          <button onclick="genMarketCheck()"
+            class="btn-glow w-full text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl">Run Market
+            Check</button>
         </div>
         <div id="analysis-consistency" class="sub-tab-content space-y-3">
           <div><label for="cv-dna">Brand DNA</label><textarea id="cv-dna" class="dark-input" rows="2"
@@ -1080,32 +1498,43 @@
             <input type="file" id="cv-image" class="dark-input" accept="image/*" />
           </div>
           <div class="flex gap-2">
-            <button onclick="genConsistencyText()" class="flex-1 btn-glow text-white font-bold text-sm py-3 rounded-2xl">Check Text</button>
-            <button onclick="genConsistencyImage()" class="flex-1 btn-outline text-white font-semibold text-sm py-3 rounded-2xl">Check Image</button>
+            <button onclick="genConsistencyText()"
+              class="flex-1 btn-glow text-[#1A1A1A] dark:text-white font-bold text-sm py-3 rounded-2xl">Check
+              Text</button>
+            <button onclick="genConsistencyImage()"
+              class="flex-1 btn-outline text-[#1A1A1A] dark:text-white font-semibold text-sm py-3 rounded-2xl">Check
+              Image</button>
           </div>
         </div>
       </div>
 
       <!-- ── TAB: Chat (sidebar form — just redirect to main panel) ── -->
       <div id="tabpanel-chat" class="tab-content space-y-4">
-        <p class="text-slate-400 text-xs leading-relaxed">Chat with your AI brand strategist powered by IBM Granite. See
+        <p class="text-gray-600 dark:text-slate-400 text-xs leading-relaxed">Chat with your AI brand strategist
+          powered
+          by IBM Granite. See
           the main panel on the right →</p>
-        <div class="glass-bright rounded-2xl p-4 border border-violet-500/20">
+        <div class="glass-bright rounded-2xl p-4 border border-[#FF5F6D]/20 dark:border-violet-500/20">
           <div class="flex items-center gap-3 mb-2">
             <div
-              class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-sm">
+              class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF5F6D] dark:from-violet-600 to-[#F4A0A0] dark:to-cyan-400 flex items-center justify-center text-sm">
               🤖</div>
             <div>
-              <p class="text-white text-xs font-bold">AI Brand Consultant</p>
-              <p class="text-slate-500 text-xs">Powered by IBM Granite 3.3</p>
+              <p class="text-[#1A1A1A] dark:text-white text-xs font-bold">AI Brand Consultant</p>
+
             </div>
             <span class="ml-auto w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           </div>
-          <p class="text-slate-500 text-xs leading-relaxed">Ask about naming, strategy, positioning, color psychology,
+          <p class="text-gray-500 dark:text-slate-500 text-xs leading-relaxed">Ask about naming, strategy,
+            positioning,
+            color psychology,
             and more.</p>
         </div>
       </div>
     </aside>
+
+    <!-- ── DRAG HANDLE ── -->
+    <div id="sidebar-resizer"></div>
 
     <!-- ── RIGHT MAIN PANEL: Live Generation ── -->
     <main id="main-panel" class="p-5 md:p-7 space-y-5">
@@ -1113,28 +1542,29 @@
       <!-- Panel header -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50"></span>
-          <h2 class="text-lg font-bold font-display text-white">Live Generation</h2>
+          <span
+            class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-[#7DB5A0]/50 dark:shadow-emerald-400/50"></span>
+          <h2 class="text-lg font-bold font-display text-[#1A1A1A] dark:text-white">Live Generation</h2>
         </div>
-        <div class="flex gap-2">
-          <button
-            class="w-9 h-9 glass rounded-xl flex items-center justify-center hover:bg-white/8 transition-colors border border-white/10 text-sm"
-            title="Download">⬇</button>
-          <button
-            class="w-9 h-9 glass rounded-xl flex items-center justify-center hover:bg-white/8 transition-colors border border-white/10 text-sm"
-            title="Share">↗</button>
-        </div>
+
       </div>
 
       <!-- ── Results for: Brand Names ── -->
       <div id="result-brand-names" class="result-panel">
-        <div id="bn-result" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        <div class="glass-card p-5">
+          <h3 class="text-base font-bold font-display text-[#1A1A1A] dark:text-white mb-4">Brand Names</h3>
+          <div id="bn-result" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="col-span-full result-area min-h-[280px] flex items-center justify-center">
+              <p class="text-slate-600 text-sm text-center">Your names will appear here after generation</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ── Results for: Logo ── -->
       <div id="result-logo" class="result-panel hidden">
         <div class="glass-card p-5">
-          <h3 class="text-base font-bold font-display text-white mb-4">Generated Logo</h3>
+          <h3 class="text-base font-bold font-display text-[#1A1A1A] dark:text-white mb-4">Logo</h3>
           <div id="logo-result" class="result-area logo-preview min-h-[280px] flex items-center justify-center">
             <p class="text-slate-600 text-sm text-center">Your logo will appear here after generation</p>
           </div>
@@ -1147,7 +1577,7 @@
       <!-- ── Results for: Content ── -->
       <div id="result-content" class="result-panel hidden">
         <div class="glass-card p-5">
-          <h3 class="text-base font-bold font-display text-white mb-3">Generated Content</h3>
+          <h3 class="text-base font-bold font-display text-[#1A1A1A] dark:text-white mb-3">Generated Content</h3>
           <div id="mc-result" class="result-area">
             <p class="text-slate-600 text-sm text-center pt-6">Marketing copy will appear here</p>
           </div>
@@ -1169,7 +1599,7 @@
       <!-- ── Results for: Design ── -->
       <div id="result-design" class="result-panel hidden">
         <div class="glass-card p-5 space-y-4">
-          <h3 class="text-base font-bold font-display text-white">Design System</h3>
+          <h3 class="text-base font-bold font-display text-[#1A1A1A] dark:text-white">Design System</h3>
           <label>Color Palette</label>
           <div id="ds-palette" class="result-area">
             <p class="text-slate-600 text-sm text-center pt-6">Color swatches will appear here</p>
@@ -1184,24 +1614,24 @@
       <!-- ── Results for: Analysis ── -->
       <div id="result-analysis" class="result-panel hidden">
         <div class="glass-card p-5 space-y-4">
-          <h3 class="text-base font-bold font-display text-white">Brand Analysis</h3>
+          <h3 class="text-base font-bold font-display text-[#1A1A1A] dark:text-white">Brand Analysis</h3>
           <label>Sentiment &amp; Brand Alignment</label>
           <div id="sa-result" class="result-area">
             <p class="text-slate-600 text-sm text-center pt-6">Sentiment analysis will appear here</p>
           </div>
-          <div class="pt-3 border-t border-white/8">
+          <div class="pt-3 border-t border-[#C8D5C0] dark:border-white/8">
             <label>Competitive Analysis</label>
             <div id="ca-result" class="result-area">
               <p class="text-slate-600 text-sm text-center pt-6">Competitor insights will appear here</p>
             </div>
           </div>
-          <div class="pt-3 border-t border-white/8">
+          <div class="pt-3 border-t border-[#C8D5C0] dark:border-white/8">
             <label>Market Readiness Report</label>
             <div id="mk-result" class="result-area">
               <p class="text-slate-600 text-sm text-center pt-6">Market report will appear here</p>
             </div>
           </div>
-          <div class="pt-3 border-t border-white/8">
+          <div class="pt-3 border-t border-[#C8D5C0] dark:border-white/8">
             <label>Brand Consistency</label>
             <div id="cv-result" class="result-area">
               <p class="text-slate-600 text-sm text-center pt-6">Consistency score will appear here</p>
@@ -1215,23 +1645,24 @@
         <div class="glass-card p-5 flex flex-col" style="min-height: 500px;">
           <div class="flex items-center gap-3 mb-4">
             <div
-              class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-base">
+              class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#FF5F6D] dark:from-violet-600 to-[#F4A0A0] dark:to-cyan-400 flex items-center justify-center text-base">
               🤖</div>
             <div>
-              <h3 class="text-base font-bold font-display text-white">BrandBot — AI Strategist</h3>
-              <p class="text-slate-500 text-xs">Powered by IBM Granite 3.3-8B-Instruct</p>
+              <h3 class="text-base font-bold font-display text-[#1A1A1A] dark:text-white">BrandBot — AI Strategist</h3>
+
             </div>
             <span
-              class="ml-auto w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-md shadow-emerald-400/50"></span>
+              class="ml-auto w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-md shadow-[#7DB5A0]/50 dark:shadow-emerald-400/50"></span>
           </div>
           <div class="chat-messages flex-1 p-2 space-y-4 mb-4" id="chat-messages" style="min-height:320px;">
             <div class="flex gap-3">
               <div
-                class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center text-sm flex-shrink-0">
+                class="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF5F6D] dark:from-violet-600 to-[#F4A0A0] dark:to-cyan-400 flex items-center justify-center text-sm flex-shrink-0">
                 🤖</div>
               <div class="chat-bubble-ai">
-                <p class="text-sm">Hi! I'm BrandBot, your AI branding strategist powered by IBM Granite. 👋</p>
-                <p class="mt-2 text-slate-400 text-xs">Ask me about brand naming, logo design, marketing strategy, color
+                <p class="text-sm">Hi! I'm BrandBot👋</p>
+                <p class="mt-2 text-gray-600 dark:text-slate-400 text-xs">Ask me about brand naming, logo design,
+                  marketing strategy, color
                   psychology, or anything branding-related!</p>
               </div>
             </div>
@@ -1243,17 +1674,13 @@
             </div>
             <div class="flex flex-col gap-2">
               <button onclick="startVoice('chat-input')"
-                class="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-500/40 flex items-center justify-center text-base hover:bg-violet-500/35 transition-all flex-shrink-0"
+                class="w-10 h-10 rounded-xl bg-[#FF5F6D]/20 dark:bg-violet-500/20 border border-[#FF5F6D]/40 dark:border-violet-500/40 flex items-center justify-center text-base hover:bg-[#FF5F6D]/35 dark:bg-violet-500/35 transition-all flex-shrink-0"
                 title="Voice Input">🎤</button>
               <button onclick="sendChatMessage()"
                 class="btn-glow w-10 h-10 rounded-full flex items-center justify-center text-base">➤</button>
             </div>
           </div>
-          <div class="flex justify-between mt-3">
-            <button onclick="clearChat()" class="text-xs text-slate-500 hover:text-red-400 transition-colors">🗑️ Clear
-              conversation</button>
-            <span class="text-xs text-slate-600">Session: <span id="session-id-display">default</span></span>
-          </div>
+
           <p class="text-slate-600 text-xs text-center mt-2">BrandCraft AI can make mistakes. Consider checking
             important information.</p>
         </div>
@@ -1453,16 +1880,16 @@
       const list = document.getElementById('projects-list');
       const projects = getProjects();
       if (projects.length === 0) {
-        list.innerHTML = `<div class="empty-state"><div class="icon">📁</div><p class="font-semibold text-slate-400">No saved projects yet</p><p class="text-xs mt-1">Generate some content and click "Save Current Project"</p></div>`;
+        list.innerHTML = `<div class="empty-state"><div class="icon">📁</div><p class="font-semibold text-gray-600 dark:text-slate-400">No saved projects yet</p><p class="text-xs mt-1">Generate some content and click "Save Current Project"</p></div>`;
         return;
       }
       list.innerHTML = projects.map(p => `
         <div class="project-card">
           <div class="flex items-start justify-between gap-3">
             <div class="flex-1 min-w-0">
-              <p class="font-bold text-white text-sm truncate">${p.name}</p>
-              ${p.industry ? `<p class="text-xs text-violet-400 mt-0.5">${p.industry}</p>` : ''}
-              ${p.names?.length ? `<p class="text-xs text-slate-500 mt-1">${p.names.slice(0, 3).join(' · ')}${p.names.length > 3 ? ' +' + (p.names.length - 3) + ' more' : ''}</p>` : ''}
+              <p class="font-bold text-[#1A1A1A] dark:text-white text-sm truncate">${p.name}</p>
+              ${p.industry ? `<p class="text-xs text-[#FF5F6D] dark:text-violet-400 mt-0.5">${p.industry}</p>` : ''}
+              ${p.names?.length ? `<p class="text-xs text-gray-500 dark:text-slate-500 mt-1">${p.names.slice(0, 3).join(' · ')}${p.names.length > 3 ? ' +' + (p.names.length - 3) + ' more' : ''}</p>` : ''}
               <p class="text-xs text-slate-600 mt-1.5">🕐 ${p.savedAt}</p>
             </div>
             <div class="flex gap-1.5 flex-shrink-0">
@@ -1496,18 +1923,17 @@
         const n = item.name || item;
         const r = item.rationale || '';
         const initials = n.replace(/[^A-Z]/g, '').slice(0, 2) || n.slice(0, 2).toUpperCase();
-        const colors = ['bg-violet-500', 'bg-cyan-500', 'bg-pink-500', 'bg-emerald-500', 'bg-amber-500', 'bg-blue-500', 'bg-rose-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500'];
+        const colors = ['bg-[#FF5F6D] dark:bg-violet-500', 'bg-cyan-500', 'bg-pink-500', 'bg-emerald-500', 'bg-amber-500', 'bg-blue-500', 'bg-rose-500', 'bg-indigo-500', 'bg-teal-500', 'bg-orange-500'];
         const card = document.createElement('div');
         card.className = 'brand-result-card h-full';
         card.innerHTML = `
           <div class="flex flex-col h-full gap-3">
             <div class="flex items-center justify-between">
-              <div class="w-10 h-10 rounded-xl ${colors[i % colors.length]} flex items-center justify-center text-white font-black text-sm flex-shrink-0">${initials}</div>
-              <button onclick="event.stopPropagation(); window.copyToLogo('${n}')" class="w-8 h-8 glass rounded-lg flex items-center justify-center text-slate-500 hover:text-white transition-colors border border-white/10 text-xs flex-shrink-0" title="Use for Logo">🎨</button>
+              <div class="w-10 h-10 rounded-xl ${colors[i % colors.length]} flex items-center justify-center text-[#1A1A1A] dark:text-white font-black text-sm flex-shrink-0">${initials}</div>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-bold text-white text-base">${n}</p>
-              <p class="text-[12px] text-slate-400 leading-relaxed mt-2">${r}</p>
+              <p class="font-bold text-[#1A1A1A] dark:text-white text-base">${n}</p>
+              <p class="text-[12px] text-gray-600 dark:text-slate-400 leading-relaxed mt-2">${r}</p>
             </div>
           </div>
         `;
@@ -1527,6 +1953,35 @@
       showPanelToast(`Copied "${name}" to logo generator!`);
     };
   </script>
+
+  <script>
+    const themeBtn = document.getElementById('theme-toggle');
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+    }
+    const stored = localStorage.getItem('theme');
+    // Default to light mode unless dark is explicitly stored or pref is set
+    if (stored === 'dark') {
+      applyTheme(true);
+    } else if (stored === 'light') {
+      applyTheme(false);
+    } else {
+      applyTheme(false); // Default Light
+    }
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        applyTheme(!isDark);
+      });
+    }
+  </script>
+
 </body>
 
 </html>

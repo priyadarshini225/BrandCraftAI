@@ -38,15 +38,15 @@ STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # ─── Entry-point redirects (must be registered BEFORE the static mount) ─────
-# Both / and /app redirect to the landing page so it is always shown first.
+# Both / and /app redirect to the Dashboard.
 
 @app.get("/", include_in_schema=False)
 async def root():
-    return RedirectResponse(url="/app/landing.html")
+    return RedirectResponse(url="/app/index.html")
 
 @app.get("/app", include_in_schema=False)
 async def app_root():
-    return RedirectResponse(url="/app/landing.html")
+    return RedirectResponse(url="/app/index.html")
 
 
 # Serve the frontend folder (registered AFTER the explicit routes above)
@@ -117,7 +117,9 @@ class LogoRequest(BaseModel):
     style_keywords: str
     description: str = ""
     mood: str = ""
-    colors: str = ""
+    asset_type: str = ""
+    typography: str = ""
+    icon_style: str = ""
     minimalism: int | None = None
     complexity: int | None = None
     vibrancy: int | None = None
@@ -143,10 +145,7 @@ class BrandGuidelinesRequest(BaseModel):
     color_palette: str
     language: str = "English"
 
-class MarketCheckRequest(BaseModel):
-    brand_name: str
-    competitor_urls: list[str]
-    tlds: list[str] | None = None
+
 
 class MoodboardRequest(BaseModel):
     archetype: str
@@ -171,10 +170,6 @@ def success(data) -> dict:
 # ═══════════════════════════════════════════════════════════════════
 # Health Check
 # ═══════════════════════════════════════════════════════════════════
-
-@app.get("/")
-async def root():
-    return {"message": "BizForge / BrandPilot AI API is running 🚀", "version": "2.0.0"}
 
 @app.get("/api/health")
 async def health_check():
@@ -302,7 +297,8 @@ async def generate_logo_prompt(req: LogoRequest):
     try:
         result = await ai.generate_logo_prompt(
             req.brand_name, req.industry, req.style_keywords,
-            req.description, req.mood, req.colors
+            req.description, req.mood, 
+            req.asset_type, req.typography, req.icon_style
         )
         return success(result)
     except Exception as e:
@@ -321,7 +317,8 @@ async def generate_logo(req: LogoRequest):
         filename = f"{safe_name}_{uuid.uuid4().hex[:8]}.png"
         logo_url = await ai.generate_logo_image(
             req.brand_name, req.industry, req.style_keywords,
-            filename, req.description, req.mood, req.colors,
+            filename, req.description, req.mood,
+            req.asset_type, req.typography, req.icon_style,
             req.minimalism, req.complexity, req.vibrancy
         )
         return success({"image_url": logo_url, "filename": filename})
@@ -357,17 +354,6 @@ async def analyze_competitors(req: CompetitorRequest):
 # ═══════════════════════════════════════════════════════════════════
 # MARKET CHECK ENDPOINT
 # ═══════════════════════════════════════════════════════════════════
-@app.post("/api/market-check")
-async def market_check(req: MarketCheckRequest):
-    """
-    Run competitor scraper → differentiation → domain & naming risk.
-    Returns a Market Readiness Report JSON.
-    """
-    try:
-        report = await ai.market_check(req.brand_name, req.competitor_urls, req.tlds)
-        return success(report)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -391,33 +377,7 @@ async def market_check_get(brand_name: str, competitor_urls: str, tlds: str | No
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/generate-pitch-deck")
-async def generate_pitch_deck_get(brand_name: str, brand_dna: str, primary_hex: str = "#7C3AED", secondary_hex: str = "#06B6D4"):
-    try:
-        text = await ai.generate_pitch_deck_text(brand_name, brand_dna)
-        slides = text.get("slides", text)
-        url = await ai.build_pitch_deck_pptx(slides, primary_hex, secondary_hex)
-        return success({"slides": slides, "file_url": url})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/validate-consistency")
-async def validate_consistency_get(brand_dna: str, about_text: str):
-    try:
-        result = await ai.validate_consistency(brand_dna, about_text=about_text)
-        return success(result)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/validate-consistency-image")
-async def validate_consistency_image_get(brand_dna: str, image_url: str):
-    try:
-        r = requests.get(image_url, timeout=20)
-        r.raise_for_status()
-        result = await ai.validate_consistency(brand_dna, image_bytes=r.content)
-        return success(result)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ═══════════════════════════════════════════════════════════════════

@@ -13,7 +13,7 @@ from io import BytesIO
 from pathlib import Path
 
 from dotenv import load_dotenv
-from huggingface_hub import AsyncInferenceClient
+from huggingface_hub import AsyncInferenceClient, InferenceClient
 from PIL import Image
 import requests
 import asyncio
@@ -26,7 +26,8 @@ GROQ_API_KEY   = os.getenv("GROQ_API_KEY", "")
 HF_API_KEY     = os.getenv("HF_API_KEY", "")
 WHOISFREAKS_API_KEY = os.getenv("WHOISFREAKS_API_KEY", "")
 
-hf_client   = AsyncInferenceClient(token=HF_API_KEY)
+hf_client      = AsyncInferenceClient(token=HF_API_KEY)
+hf_sync_client = InferenceClient(token=HF_API_KEY)  # sync, for use inside threads
 
 # IBM Granite model ID on Hugging Face
 GRANITE_MODEL = "ibm-granite/granite-3.3-8b-instruct"
@@ -141,7 +142,9 @@ async def generate_marketing_content(
         f"Tone of voice: {tone}\n"
         f"Content type requested: {content_type}\n\n"
         "Create high-quality marketing content that perfectly captures "
-        "the brand essence. Include multiple variations where applicable."
+        "the brand essence. Include multiple variations where applicable.\n"
+        "IMPORTANT: Generate ONLY the exact 'Content type requested'. "
+        "For example, if asked for Slogans, generate only slogans with it's description(which clearly explains or defines that slogan), do NOT generate Taglines"
     )
     return await asyncio.to_thread(_groq_chat, system, user, 0.85)
 
@@ -155,7 +158,9 @@ async def generate_logo_prompt(
     keywords: str,
     description: str = "",
     mood: str = "",
-    colors: str = "",
+    asset_type: str = "",
+    typography: str = "",
+    icon_style: str = "",
 ) -> str:
     """
     Generate a structured Gemini logo prompt (for user preview).
@@ -170,11 +175,15 @@ async def generate_logo_prompt(
         f"Brand Name: {brand_name}\n"
         f"Industry: {industry}\n"
         f"Style Keywords: {keywords or 'minimalist, modern, clean'}\n"
-        f"Color Palette: {colors or 'professional on-brand colors'}\n"
         f"Mood: {mood or 'professional, trustworthy, memorable'}\n"
-        f"Design Concept: {description or 'none'}\n\n"
+        f"Design Concept: {description or 'none'}\n"
+        f"Asset Type Required: {asset_type or 'Flat Vector Logo'}\n"
+        f"Typography Preference: {typography or 'Any'}\n"
+        f"Icon Style Preference: {icon_style or 'Any'}\n\n"
         "Write a detailed logo generation prompt specifying: the exact icon/symbol, "
-        "typography style for the brand name, colors, flat/vector style, white background."
+        "typography style, colors, flat/vector style, white background. "
+        f'IMPORTANT: Explicitly state the exact brand name \\"{brand_name}\\" to ensure correct spelling in text/typography. '
+        "Pay special attention to matching the Asset Type, Typography Preference, and Icon Style Preference."
     )
     return await asyncio.to_thread(_groq_chat, system, user, 0.7)
 
@@ -434,7 +443,9 @@ async def generate_logo_image(
     filename: str = "logo.png",
     description: str = "",
     mood: str = "",
-    colors: str = "",
+    asset_type: str = "",
+    typography: str = "",
+    icon_style: str = "",
     minimalism: int | None = None,
     complexity: int | None = None,
     vibrancy: int | None = None,
@@ -448,74 +459,358 @@ async def generate_logo_image(
     import urllib.parse
     import time
 
-    # Build prompt from text fields + slider adjustments
-    style  = (style_keywords or "minimalist flat vector")[:60]
-    color  = (colors or "professional colors")[:40]
-    symbol = f", {description[:50]}" if description else ""
-
-    # Slider-based keyword enhancements
-    extra_keywords = []
-    if isinstance(minimalism, int) and minimalism >= 80:
-        extra_keywords += ["vector", "flat design", "simple lines"]
-    if isinstance(vibrancy, int) and vibrancy >= 80:
-        extra_keywords += ["neon", "high contrast", "bold colors"]
-    if isinstance(complexity, int) and complexity >= 80:
-        extra_keywords += ["intricate details", "ornate", "complex geometry"]
-    if isinstance(complexity, int) and complexity <= 20:
-        extra_keywords += ["ultra minimal", "few elements", "monoline"]
-    slider_part = (", " + ", ".join(extra_keywords)) if extra_keywords else ""
-
-    prompt = (
-        f"brand logo '{brand_name}' {industry}, {style}, {color}{symbol}{slider_part}, "
-        "white background, flat vector, clean, sans-serif"
+    # ----- Build a structured FLUX prompt via Groq (ChatGPT-level quality) -----
+    _sys = (
+        "You are a logo prompt engineer specialized in HuggingFace FLUX.1-schnell image generation. "
+        "When given brand parameters, restructure them into ONE optimized FLUX prompt under 80 words. "
+        "\n\nALWAYS follow this exact structure:\n"
+        "[Render style] + [white background] + [icon description with colors] + "
+        "[typography instruction] + [exact hex color codes] + [layout] + [mood/style tags]\n"
+        "\nRULES:\n"
+        "- Use hex codes directly (e.g. #0A1628, #00D4FF)\n"
+        "- Specify spatial relationships (left icon, right text / icon above text)\n"
+        "- Name exact font feel (Futura-style, geometric sans-serif, Neue Haas-like)\n"
+        "- Say what NOT to include: no gradients, no shadows, no decorative elements\n"
+        "- End with 2-3 style tags: e.g. minimal, flat vector, MedTech\n"
+        "- IMPORTANT: You MUST include the exact brand name in quotes in the prompt so the AI spells it correctly.\n"
+        "\nEXAMPLE OUTPUT (match this quality and length):\n"
+        "\"Flat vector logo on white. Hexagonal shield outline #0A1628, electric cyan #00D4FF neural "
+        "pathway lines inside branching into ECG heartbeat wave at center, circuit-synapse hybrid lines. "
+        "Right side: bold geometric sans-serif wordmark reading \\\"Neulite\\\", brand name bold top, tagword lightweight smaller below. "
+        "No gradients, no shadows. Logomark left, wordmark right. MedTech, clinical precision, AI-forward.\"\n"
+        "\nOutput ONLY the prompt string — no explanation, no quotes around it."
     )
 
-    negative = (
-        "blurry, watermark, photo, 3d render, dark background, "
-        "grid, multiple versions, text, lettering, signature"
+    icon_hint = description or ""
+    _usr = (
+        f"Brand name: {brand_name}\n"
+        f"Industry: {industry}\n"
+        f"Visual style: {style_keywords or 'minimal, modern, geometric'}\n"
+        + (f"Typography style: {typography}\n" if typography else "")
+        + (f"Icon style: {icon_style}\n" if icon_style else "")
+        + (f"Mood / feeling: {mood}\n" if mood else "")
+        + (f"Icon / symbol concept: {icon_hint}\n" if icon_hint else "")
+        + "Generate the optimized FLUX logo prompt following the structure above."
     )
-
-    def _try_huggingface() -> Image.Image:
-        """Primary: HuggingFace Router → FLUX.1-schnell"""
-        resp = requests.post(
-            "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
-            headers={"Authorization": f"Bearer {HF_API_KEY}"},
-            json={"inputs": prompt},
-            timeout=120,
+    try:
+        prompt = _groq_chat(_sys, _usr, temperature=0.65, max_tokens=180).strip().strip('"').strip("'")
+        prompt = " ".join(prompt.split())
+        if len(prompt) > 400:
+            prompt = prompt[:397] + "..."
+    except Exception:
+        typo_hint = f"{typography} font, " if typography else "geometric sans-serif, "
+        mood_hint = f"{mood}, " if mood else ""
+        prompt = (
+            f"Flat vector logo on white. {industry} brand icon. "
+            f"{typo_hint}{mood_hint}no gradients, no shadows. minimal, flat vector, professional."
         )
-        resp.raise_for_status()
-        return Image.open(BytesIO(resp.content)).convert("RGBA")
+
+
+
+
+    # Strong negative prompt — aggressively prevent text/letters in generated image
+    negative = (
+        "text, letters, words, typography, brand name, label, caption, watermark, "
+        "signature, alphabet, numbers, font, writing, calligraphy, "
+        "photo, realistic, blurry, 3d render, dark background, multiple icons"
+    )
+
+    def _try_hf_flux() -> Image.Image:
+        """PRIMARY: HuggingFace FLUX.1-schnell via InferenceClient.
+        Retries up to 2 times on model-loading (503/loading) errors.
+        """
+        import logging
+        last_exc = None
+        for attempt in range(2):
+            try:
+                logging.warning(f"[Logo] HF FLUX attempt {attempt+1}/2")
+                img = hf_sync_client.text_to_image(
+                    prompt,
+                    model="black-forest-labs/FLUX.1-schnell",
+                )
+                logging.warning("[Logo] HF FLUX → SUCCESS")
+                return img.convert("RGBA")
+            except Exception as e:
+                last_exc = e
+                err = str(e).lower()
+                logging.warning(f"[Logo] HF FLUX attempt {attempt+1} failed: {e}")
+                if "loading" in err or "503" in err:
+                    time.sleep(15)
+                    continue
+                break  # non-transient error — don't retry
+        raise last_exc or RuntimeError("HF FLUX failed")
 
     def _try_pollinations() -> Image.Image:
-        """Fallback: Pollinations.ai GET endpoint"""
-        seed = abs(hash(brand_name)) % 9999
+        """FALLBACK: Pollinations.ai with FLUX model — free, no key needed."""
+        import urllib.parse as _up
+        import logging
+        seed = int(time.time()) % 99999
+        short_prompt = prompt[:200]
         url = (
-            f"https://image.pollinations.ai/prompt/{urllib.parse.quote(prompt)}"
-            f"?width=512&height=512&model=flux&nologo=true"
-            f"&negative={urllib.parse.quote(negative)}&seed={seed}"
+            f"https://image.pollinations.ai/prompt/{_up.quote(short_prompt)}"
+            f"?width=512&height=512&model=flux&nologo=true&enhance=false&seed={seed}"
         )
-        resp = requests.get(url, timeout=120)
+        logging.warning(f"[Logo] Pollinations URL len={len(url)}")
+        resp = requests.get(url, timeout=90)
+        logging.warning(f"[Logo] Pollinations → HTTP {resp.status_code}")
         resp.raise_for_status()
         return Image.open(BytesIO(resp.content)).convert("RGBA")
 
+
+    def _local_logo_fallback() -> Image.Image:
+        """
+        Industry-aware PIL fallback: picks the right icon template
+        based on the brand's industry/style context, then applies brand colors.
+
+        Templates:
+          health/medical  → Hexagonal shield + ECG waveform + neural lines
+          tech/ai/data    → Circuit grid with connected nodes
+          finance/legal   → Upward growth arrow-diamond + data nodes
+          nature/food/eco → Circular leaf / organic ring
+          default         → Diamond with orbiting nodes + spokes
+        """
+        import math
+        from PIL import ImageDraw
+
+        SIZE = 512
+        cx, cy = SIZE // 2, SIZE // 2
+
+        # ── Detect industry context ──────────────────────────────────────
+        ctx = f"{industry} {style_keywords or ''} {description or ''}".lower()
+
+        HEALTH_KW  = {"health","medical","clinic","pharma","biotech","ecg","neuro",
+                      "hospital","care","therapy","wellness","medtech","diagnostic"}
+        TECH_KW    = {"tech","software","ai","data","cloud","cyber","digital","saas",
+                      "machine learning","neural","circuit","robot","analytics","code"}
+        FINANCE_KW = {"finance","fintech","bank","invest","capital","insurance",
+                      "wealth","crypto","trading","accounting","legal","consult"}
+        NATURE_KW  = {"food","restaurant","organic","eco","green","sustainability",
+                      "nature","garden","farm","coffee","beauty","wellness","yoga"}
+
+        def _ctx_match(kws): return any(k in ctx for k in kws)
+
+        if _ctx_match(HEALTH_KW):
+            template = "health"
+        elif _ctx_match(TECH_KW):
+            template = "tech"
+        elif _ctx_match(FINANCE_KW):
+            template = "finance"
+        elif _ctx_match(NATURE_KW):
+            template = "nature"
+        else:
+            template = "default"
+
+        # ── Parse brand colors ───────────────────────────────────────────
+        col_str = (colors or "").lower()
+        import re as _re
+        parsed = []
+        for h in _re.findall(r'#([0-9a-f]{6})', col_str)[:2]:
+            parsed.append((int(h[0:2],16), int(h[2:4],16), int(h[4:6],16)))
+        keyword_map = {
+            "red":(139,10,26),"crimson":(180,20,30),"maroon":(100,8,20),
+            "navy":(10,22,40),"midnight":(10,22,40),"blue":(37,99,235),
+            "indigo":(79,70,229),"violet":(109,40,217),
+            "teal":(20,184,166),"cyan":(0,212,255),"electric":(0,212,255),
+            "green":(5,150,105),"emerald":(0,128,0),"lime":(77,175,74),
+            "purple":(124,58,237),"orange":(234,88,12),"gold":(202,138,4),
+            "pink":(219,39,119),"rose":(244,63,94),
+        }
+        if not parsed:
+            for kw, rgb in keyword_map.items():
+                if kw in col_str:
+                    parsed.append(rgb)
+                if len(parsed) == 2:
+                    break
+
+        # Default palette per template when no colors given
+        _defaults = {
+            "health":  ((10,22,40),   (0,212,255)),
+            "tech":    ((15,23,42),   (99,102,241)),
+            "finance": ((15,30,60),   (202,138,4)),
+            "nature":  ((20,83,45),   (74,222,128)),
+            "default": ((30,30,60),   (139,92,246)),
+        }
+        p = _defaults[template]
+        primary   = parsed[0] if len(parsed) >= 1 else p[0]
+        secondary = parsed[1] if len(parsed) >= 2 else p[1]
+
+        img  = Image.new("RGBA", (SIZE, SIZE), (255, 255, 255, 255))
+        draw = ImageDraw.Draw(img)
+
+        # ════════════════════════════════════════════════════════════════
+        # TEMPLATE 1 — HEALTH / MEDTECH
+        # Hexagonal shield + neural lines + ECG waveform
+        # ════════════════════════════════════════════════════════════════
+        if template == "health":
+            HEX_R = 200
+            hex_pts = [(cx + HEX_R*math.cos(math.radians(i*60-30)),
+                        cy + HEX_R*math.sin(math.radians(i*60-30))) for i in range(6)]
+            draw.polygon(hex_pts, fill=(*primary, 255))
+            draw.polygon(hex_pts, outline=(*secondary, 255), width=6)
+            inn_pts = [(cx + 170*math.cos(math.radians(i*60-30)),
+                        cy + 170*math.sin(math.radians(i*60-30))) for i in range(6)]
+            draw.polygon(inn_pts, outline=(*secondary, 100), width=2)
+            # Neural lines
+            for vx, vy in hex_pts:
+                bx = int(vx*0.45 + cx*0.55); by = int(vy*0.45 + cy*0.55)
+                draw.line([(int(vx),int(vy)),(bx,by)], fill=(*secondary,200), width=3)
+                draw.ellipse([bx-7,by-7,bx+7,by+7], fill=(*secondary,255))
+                draw.ellipse([bx-3,by-3,bx+3,by+3], fill=(255,255,255,200))
+                draw.line([(bx,by),(cx-25,cy)], fill=(*secondary,110), width=2)
+                draw.line([(bx,by),(cx+25,cy)], fill=(*secondary,80), width=1)
+            # ECG
+            ecg = [(-140,0),(-80,0),(-55,0),(-45,-18),(-35,0),(-18,0),
+                   (0,-75),(12,45),(22,0),(40,0),(55,-20),(70,0),(140,0)]
+            draw.line([(cx+dx,cy+dy) for dx,dy in ecg], fill=(*secondary,255), width=4)
+
+        # ════════════════════════════════════════════════════════════════
+        # TEMPLATE 2 — TECH / AI / SOFTWARE
+        # Circuit-board square frame + connected nodes on a grid
+        # ════════════════════════════════════════════════════════════════
+        elif template == "tech":
+            # Outer square (rotated 45° = diamond)
+            sq = 185
+            sq_pts = [(cx,cy-sq),(cx+sq,cy),(cx,cy+sq),(cx-sq,cy)]
+            draw.polygon(sq_pts, fill=(*primary,255))
+            draw.polygon(sq_pts, outline=(*secondary,255), width=5)
+            # Inner square (axis-aligned)
+            i_sq = 110
+            draw.rectangle([cx-i_sq,cy-i_sq,cx+i_sq,cy+i_sq],
+                           outline=(*secondary,100), width=2)
+            # Grid nodes at intersections
+            grid_offsets = [(-75,-75),(0,-75),(75,-75),
+                            (-75,0),(0,0),(75,0),
+                            (-75,75),(0,75),(75,75)]
+            for gx, gy in grid_offsets:
+                nx, ny = cx+gx, cy+gy
+                draw.ellipse([nx-8,ny-8,nx+8,ny+8], fill=(*secondary,255))
+                draw.ellipse([nx-3,ny-3,nx+3,ny+3], fill=(255,255,255,200))
+            # Horizontal + vertical connection lines
+            for gx, gy in grid_offsets:
+                for dx2, dy2 in [(75,0),(0,75)]:
+                    x2, y2 = cx+gx+dx2, cy+gy+dy2
+                    if any(abs(x2-cx-ox)<1 and abs(y2-cy-oy)<1
+                           for ox,oy in grid_offsets):
+                        draw.line([(cx+gx,cy+gy),(x2,y2)],
+                                  fill=(*secondary,150), width=2)
+            # Central circuit cross
+            draw.line([(cx-80,cy),(cx+80,cy)], fill=(*secondary,200), width=3)
+            draw.line([(cx,cy-80),(cx,cy+80)], fill=(*secondary,200), width=3)
+            draw.ellipse([cx-14,cy-14,cx+14,cy+14], fill=(*secondary,255))
+
+        # ════════════════════════════════════════════════════════════════
+        # TEMPLATE 3 — FINANCE / BUSINESS / LEGAL
+        # Upward triangular arrow + bar chart nodes inside shield
+        # ════════════════════════════════════════════════════════════════
+        elif template == "finance":
+            # Rounded shield outline
+            draw.ellipse([cx-200,cy-200,cx+200,cy+200], fill=(*primary,255))
+            draw.ellipse([cx-200,cy-200,cx+200,cy+200],
+                         outline=(*secondary,255), width=5)
+            draw.ellipse([cx-165,cy-165,cx+165,cy+165],
+                         outline=(*secondary,80), width=2)
+            # Rising arrow (upward triangle)
+            arrow_pts = [(cx, cy-130),(cx-90, cy+80),(cx+90, cy+80)]
+            draw.polygon(arrow_pts, fill=(*secondary,255))
+            # Bar chart lines inside arrow
+            bars = [(-55,60,20),(-20,80,50),(20,100,80),(55,60,20)]
+            for bx_off, h, w in bars:
+                bx = cx + bx_off
+                draw.rectangle([bx-10, cy+80-h, bx+10, cy+80],
+                               fill=(*primary,220))
+            # Node dots on upward trend line
+            trend = [(cx-80,cy+50),(cx-40,cy+10),(cx,cy-40),(cx+40,cy-90)]
+            draw.line(trend, fill=(255,255,255,200), width=3)
+            for tx,ty in trend:
+                draw.ellipse([tx-7,ty-7,tx+7,ty+7], fill=(255,255,255,255))
+
+        # ════════════════════════════════════════════════════════════════
+        # TEMPLATE 4 — NATURE / FOOD / ECO / WELLNESS
+        # Circular ring + stylized leaf in center
+        # ════════════════════════════════════════════════════════════════
+        elif template == "nature":
+            # Outer ring
+            draw.ellipse([cx-200,cy-200,cx+200,cy+200],
+                         outline=(*secondary,255), width=8)
+            draw.ellipse([cx-170,cy-170,cx+170,cy+170],
+                         outline=(*secondary,80), width=2)
+            # Inner filled circle
+            draw.ellipse([cx-140,cy-140,cx+140,cy+140], fill=(*primary,255))
+            # Leaf shape (two arcs meeting at top and bottom)
+            leaf_pts = []
+            for i in range(20):
+                t = i / 19
+                angle = math.pi * t - math.pi/2
+                lx = cx + int(70 * math.sin(angle * 2))
+                ly = cy - int(120 * math.cos(angle))
+                leaf_pts.append((lx, ly))
+            for i in range(20):
+                t = i / 19
+                angle = math.pi * t + math.pi/2
+                lx = cx + int(30 * math.sin(angle * 2))
+                ly = cy - int(120 * math.cos(angle))
+                leaf_pts.append((lx, ly))
+            if len(leaf_pts) > 2:
+                draw.polygon(leaf_pts, fill=(*secondary,230))
+            # Center stem
+            draw.line([(cx,cy-120),(cx,cy+40)], fill=(255,255,255,180), width=3)
+            # Small circular dots around ring (natural feel)
+            for i in range(8):
+                angle = math.radians(i*45)
+                dx2 = int(185*math.cos(angle)); dy2 = int(185*math.sin(angle))
+                draw.ellipse([cx+dx2-8,cy+dy2-8,cx+dx2+8,cy+dy2+8],
+                             fill=(*secondary,255))
+
+        # ════════════════════════════════════════════════════════════════
+        # TEMPLATE 5 — DEFAULT / GENERIC
+        # Diamond frame + 6 orbiting nodes + spoke lines + center hub
+        # ════════════════════════════════════════════════════════════════
+        else:
+            # Diamond (square rotated 45°)
+            D = 195
+            dia_pts = [(cx,cy-D),(cx+D,cy),(cx,cy+D),(cx-D,cy)]
+            draw.polygon(dia_pts, fill=(*primary,255))
+            draw.polygon(dia_pts, outline=(*secondary,255), width=5)
+            # Inner ring
+            draw.ellipse([cx-120,cy-120,cx+120,cy+120],
+                         outline=(*secondary,120), width=2)
+            # 6 orbiting nodes
+            for i in range(6):
+                angle = math.radians(i*60 - 90)
+                nx = int(cx + 150*math.cos(angle))
+                ny = int(cy + 150*math.sin(angle))
+                draw.line([(cx,cy),(nx,ny)], fill=(*secondary,80), width=2)
+                nr = 16 if i%2==0 else 11
+                fill_c = primary if i%2==0 else secondary
+                draw.ellipse([nx-nr,ny-nr,nx+nr,ny+nr], fill=(*fill_c,255))
+                draw.ellipse([nx-5,ny-5,nx+5,ny+5], fill=(255,255,255,200))
+            # Center hub
+            draw.ellipse([cx-22,cy-22,cx+22,cy+22], fill=(*secondary,255))
+            draw.ellipse([cx-8,cy-8,cx+8,cy+8], fill=(255,255,255,220))
+
+        return img
+
+
+
+
     def _fetch():
-        # Try HuggingFace first (more reliable), then Pollinations as fallback
-        providers = [
-            ("HuggingFace FLUX.1-schnell", _try_huggingface),
-            ("Pollinations.ai", _try_pollinations),
-        ]
-        last_err = None
-        for name, fn in providers:
-            for retry in range(2):
-                try:
-                    return fn()
-                except Exception as e:
-                    last_err = e
-                    time.sleep(2 * (retry + 1))
-        raise RuntimeError(
-            f"Logo generation failed (all providers down). Last error: {last_err}. "
-            "Please try again in a minute."
-        )
+        import logging
+        last_err = "unknown"
+        for name, fn in [
+            ("HF FLUX",      _try_hf_flux),
+            ("Pollinations", _try_pollinations),
+        ]:
+            try:
+                img = fn()
+                logging.warning(f"[Logo] SUCCESS via {name}")
+                return img
+            except Exception as e:
+                last_err = str(e)
+                logging.warning(f"[Logo] FAILED {name}: {e}")
+                time.sleep(1)
+        logging.warning(f"[Logo] All providers failed ({last_err}). Using PIL fallback.")
+        return _local_logo_fallback()
+
 
     image: Image.Image = await asyncio.to_thread(_fetch)
 
